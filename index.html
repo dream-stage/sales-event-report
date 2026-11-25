@@ -636,10 +636,7 @@
                             </button>
                         </div>
                     </div>
-
-                    <!-- 毎回設定不要にするための永続化オプション -->
-                    <div class="pt-3 border-t border-slate-200/80 space-y-2">
-                        <p class="text-[11px] font-bold text-slate-700">毎回設定しなくて済むようにする（お気に入り登録・配布用）</p>
+                    <div class="pt-2 border-t border-slate-200/80 space-y-2">
                         <div class="flex flex-wrap items-center gap-2">
                             <button type="button" onclick="copyPermanentBookmarkUrl()" class="px-3 py-1.5 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold transition">
                                 設定済み専用URLをコピー
@@ -658,11 +655,14 @@
                 <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-2.5">
                     <p class="text-xs font-bold text-slate-800">スプレッドシート1行目見出し（A列〜R列・全18列）</p>
                     <p class="text-[11px] text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-200 leading-relaxed break-all">
-                        実施日 → 企業名 → 店舗名 → 担当者 → 入店時間 → 販売開始時間 → 終了時間 → 退店時間 → 商品名 → 販売価格 → 販売準備数 → 販売数 → 売上合計金額 → 店舗外観写真URL → ポスター・告知物URL → 販売会の写真URL → 現場所感 → 送信日時
+                        実施日 → 企業名 → 店舗名 → 担当者 → 入店時間 → 販売開始時間 → 販売終了時間 → 退店時間 → 販売商品 → 販売価格 → 販売準備数 → 販売数 → 売上合計金額 → 店舗外観写真URL → ポスター・告知物写真URL → 販売会の写真URL → 現場所感 → 送信日時
                     </p>
                     <div class="flex flex-wrap items-center gap-2">
                         <button type="button" onclick="copySheetHeaderRow()" class="px-3 py-1.5 rounded-xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold transition">
                             1行目見出しをコピー（A1貼付用）
+                        </button>
+                        <button type="button" onclick="reorderSheetColumnsFromApp()" class="px-3 py-1.5 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold transition">
+                            シートの列順を今すぐ整列
                         </button>
                         <button type="button" onclick="cleanupTestRowsInSheet()" class="px-3 py-1.5 rounded-xl border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-semibold transition">
                             シート内のテスト行を削除
@@ -744,23 +744,23 @@
             '担当者',
             '入店時間',
             '販売開始時間',
-            '終了時間',
+            '販売終了時間',
             '退店時間',
-            '商品名',
+            '販売商品',
             '販売価格',
             '販売準備数',
             '販売数',
             '売上合計金額',
             '店舗外観写真URL',
-            'ポスター・告知物URL',
+            'ポスター・告知物写真URL',
             '販売会の写真URL',
             '現場所感',
             '送信日時'
         ];
 
         const DEFAULT_STORE_MASTER = {
-            '夢屋': ['霧島店', '鹿屋店', '加治木店', '枕崎店', '出水店', '川内店', '志布志店'],
-            'MGM': ['札元店', '志布志店', '出水店', '川内店', '隼人店', '國分店']
+            '夢屋': ['霧島店', '札元店', '国分店', '加治木店'],
+            'MGM': ['札元店', '国分店', '出水店', '阿久根店']
         };
 
         const DEFAULT_PRODUCT_MASTER = [
@@ -775,30 +775,70 @@
 const GAS_SCRIPT_VERSION = '${GAS_VERSION_TAG}';
 const REPORT_HEADERS = [
   '実施日', '企業名', '店舗名', '担当者',
-  '入店時間', '販売開始時間', '終了時間', '退店時間',
-  '商品名', '販売価格', '販売準備数', '販売数', '売上合計金額',
-  '店舗外観写真URL', 'ポスター・告知物URL', '販売会の写真URL',
+  '入店時間', '販売開始時間', '販売終了時間', '退店時間',
+  '販売商品', '販売価格', '販売準備数', '販売数', '売上合計金額',
+  '店舗外観写真URL', 'ポスター・告知物写真URL', '販売会の写真URL',
   '現場所感', '送信日時'
 ];
+const HEADER_ALIASES = {
+  '実施日': ['実施日', '日付', '開催日'],
+  '企業名': ['企業名', '会社名'],
+  '店舗名': ['店舗名', '店舗'],
+  '担当者': ['担当者', '担当', '担当者名'],
+  '入店時間': ['入店時間', '入店時刻', '入店'],
+  '販売開始時間': ['販売開始時間', '開始時間', '開始時刻'],
+  '販売終了時間': ['販売終了時間', '終了時間', '終了時刻'],
+  '退店時間': ['退店時間', '退店時刻', '退店'],
+  '販売商品': ['販売商品', '販売商品名', '商品名', '販売商品明細', '商品明細'],
+  '販売価格': ['販売価格', '価格', '単価'],
+  '販売準備数': ['販売準備数', '総販売準備数', '準備数'],
+  '販売数': ['販売数', '総販売数', '売上個数', '販売個数'],
+  '売上合計金額': ['売上合計金額', '売上合計', '合計金額', '売上金額'],
+  '店舗外観写真URL': ['店舗外観写真URL', '店舗外観URL', '店舗外観写真', '外観写真URL'],
+  'ポスター・告知物写真URL': ['ポスター・告知物写真URL', 'ポスター・告知物URL', 'ポスター写真URL', 'ポスターURL', '告知物写真URL', '告知物URL'],
+  '販売会の写真URL': ['販売会の写真URL', '販売会写真URL', '販売会URL', '販売風景写真URL'],
+  '現場所感': ['現場所感', 'メモ欄', 'メモ', '所感', '備考'],
+  '送信日時': ['送信日時', '登録日時', 'タイムスタンプ']
+};
 const PRODUCT_MASTER_SHEET = '商品マスタ';
 const STORE_MASTER_SHEET = '企業名・店舗名マスタ';
 const PHOTO_FOLDER_NAME = '販売会報告書_現場写真';
 
-function onOpen() {
-  SpreadsheetApp.getUi()
-    .createMenu('販売会報告書')
-    .addItem('1行目の見出し（全18列）を整備', 'setupReportHeadersMenu')
-    .addToUi();
+function doGet(e) {
+  try {
+    const action = (e && e.parameter && e.parameter.action) ? String(e.parameter.action) : 'ping';
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+    if (action === 'ping') {
+      const sheet = resolveReportSheet(ss);
+      return jsonResponse({ status: 'ok', version: GAS_SCRIPT_VERSION, sheetName: sheet.getName() }, e);
+    }
+
+    if (action === 'getProducts') {
+      const items = readProductMasterFromSheet(ss);
+      return jsonResponse({ status: 'ok', version: GAS_SCRIPT_VERSION, items: items }, e);
+    }
+
+    if (action === 'syncProductsGet') {
+      const rawItems = (e && e.parameter && e.parameter.items) ? String(e.parameter.items) : '[]';
+      let parsed = [];
+      try { parsed = JSON.parse(rawItems); } catch (err) {}
+      const count = writeProductMasterToSheet(ss, parsed);
+      return jsonResponse({ status: 'success', version: GAS_SCRIPT_VERSION, count: count }, e);
+    }
+
+    if (action === 'getStores') {
+      const stores = readStoreMasterFromSheet(ss);
+      return jsonResponse({ status: 'ok', version: GAS_SCRIPT_VERSION, stores: stores }, e);
+    }
+
+    return jsonResponse({ status: 'ok', version: GAS_SCRIPT_VERSION }, e);
+  } catch (err) {
+    return jsonResponse({ status: 'error', message: err.message }, e);
+  }
 }
 
-function setupReportHeadersMenu() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const sheet = getReportSheet(ss);
-  ensureReportHeaders(sheet);
-  SpreadsheetApp.getUi().alert('1行目の見出し（全18列・最終列＝送信日時）を整備しました。');
-}
-
-function getReportSheet(ss) {
+function resolveReportSheet(ss) {
   const sheets = ss.getSheets();
   for (let i = 0; i < sheets.length; i++) {
     const name = sheets[i].getName();
@@ -809,280 +849,305 @@ function getReportSheet(ss) {
   return ss.insertSheet('販売会報告書');
 }
 
-function ensureReportHeaders(sheet) {
-  const lastCol = Math.max(sheet.getLastColumn(), REPORT_HEADERS.length);
-  const firstRow = sheet.getRange(1, 1, 1, lastCol).getValues()[0].map(v => String(v || '').trim());
-
-  // 1行目が完全に空（新規シート）の場合のみ標準18列見出しを作成
-  if (firstRow.every(v => !v)) {
-    const headerRange = sheet.getRange(1, 1, 1, REPORT_HEADERS.length);
-    headerRange.setValues([REPORT_HEADERS]);
-    headerRange.setFontWeight('bold');
-    headerRange.setBackground('#f1f5f9');
-    return REPORT_HEADERS;
-  }
-
-  // 既存シートの見出し名に合わせて不足している必須列のみ末尾に補完
-  const aliases = {
-    '実施日': ['実施日', '日付', '開催日'],
-    '企業名': ['企業名', '会社名'],
-    '店舗名': ['店舗名', '店舗'],
-    '担当者': ['担当者', '担当'],
-    '入店時間': ['入店時間', '入店'],
-    '販売開始時間': ['販売開始時間', '開始時間'],
-    '終了時間': ['終了時間', '販売終了時間'],
-    '退店時間': ['退店時間', '退店'],
-    '商品名': ['商品名', '販売商品'],
-    '販売価格': ['販売価格', '価格', '単価'],
-    '販売準備数': ['販売準備数', '準備数'],
-    '販売数': ['販売数'],
-    '売上合計金額': ['売上合計金額', '売上合計', '合計金額'],
-    '店舗外観写真URL': ['店舗外観写真URL', '店舗外観URL', '店舗外観写真'],
-    'ポスター・告知物URL': ['ポスター・告知物URL', 'ポスター写真URL', 'ポスターURL', '告知物URL'],
-    '販売会の写真URL': ['販売会の写真URL', '販売会写真URL', '販売会URL'],
-    '現場所感': ['現場所感', '所感', '備考'],
-    '送信日時': ['送信日時', '登録日時']
-  };
-
-  const headers = firstRow.slice();
-  REPORT_HEADERS.forEach(reqHeader => {
-    const candidateNames = aliases[reqHeader] || [reqHeader];
-    const found = headers.some(h => candidateNames.includes(h));
-    if (!found) {
-      headers.push(reqHeader);
-      const newColIdx = headers.length;
-      const cell = sheet.getRange(1, newColIdx);
-      cell.setValue(reqHeader);
-      cell.setFontWeight('bold');
-      cell.setBackground('#f1f5f9');
-    }
-  });
-  return headers;
+function normalizeHeaderName(h) {
+  return String(h || '').replace(/[\\s\\u3000]+/g, '').trim();
 }
 
-function findHeaderColIndex(headers, candidateNames) {
-  for (let i = 0; i < headers.length; i++) {
-    const h = String(headers[i] || '').trim();
-    if (candidateNames.includes(h)) return i;
+function findHeaderColIndex(headers, candidates, startIndex) {
+  const start = typeof startIndex === 'number' ? startIndex : 0;
+  const normHeaders = headers.map(normalizeHeaderName);
+  const normCandidates = (candidates || []).map(normalizeHeaderName);
+  for (let i = 0; i < normCandidates.length; i++) {
+    const target = normCandidates[i];
+    if (!target) continue;
+    for (let c = start; c < normHeaders.length; c++) {
+      if (normHeaders[c] === target) return c;
+    }
   }
   return -1;
 }
 
-function savePhotoToDrive(base64DataUrl, fileName) {
-  if (!base64DataUrl || typeof base64DataUrl !== 'string' || !base64DataUrl.startsWith('data:image/')) {
-    return base64DataUrl || '';
+function ensureReportHeaders(sheet) {
+  if (sheet.getLastRow() === 0 || sheet.getLastColumn() === 0) {
+    sheet.getRange(1, 1, 1, REPORT_HEADERS.length).setValues([REPORT_HEADERS]);
+    sheet.getRange(1, 1, 1, REPORT_HEADERS.length).setFontWeight('bold').setBackground('#f1f5f9');
+    return REPORT_HEADERS.slice();
   }
-  try {
-    const parts = base64DataUrl.split(',');
-    const meta = parts[0] || '';
-    const b64 = parts[1] || '';
-    const mimeMatch = meta.match(/data:(image\\/[a-zA-Z0-9.+-]+);base64/);
-    const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
-    const bytes = Utilities.base64Decode(b64);
-    const blob = Utilities.newBlob(bytes, mimeType, fileName);
 
+  // 1. 不要な「販売人数」列が残っている場合は列ごと削除
+  if (sheet.getLastColumn() > 1) {
+    const rawHeaders = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(normalizeHeaderName);
+    for (let c = rawHeaders.length - 1; c >= 0; c--) {
+      if (rawHeaders[c] === '販売人数' && sheet.getLastColumn() > 1) {
+        sheet.deleteColumn(c + 1);
+      }
+    }
+  }
+
+  // 2. 旧見出し名・重複列があればデータを統合して正式見出し名へ統一
+  REPORT_HEADERS.forEach(canonical => {
+    if (sheet.getLastColumn() === 0) return;
+    const candidates = (HEADER_ALIASES[canonical] || [canonical]).map(normalizeHeaderName);
+    const curHeaders = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(normalizeHeaderName);
+    const matchedCols = [];
+    for (let c = 0; c < curHeaders.length; c++) {
+      if (candidates.indexOf(curHeaders[c]) >= 0) {
+        matchedCols.push(c);
+      }
+    }
+    if (matchedCols.length > 0) {
+      const primaryIdx = matchedCols[0];
+      const lastRow = sheet.getLastRow();
+      if (matchedCols.length > 1 && lastRow >= 2) {
+        const primaryRange = sheet.getRange(2, primaryIdx + 1, lastRow - 1, 1);
+        const primaryVals = primaryRange.getValues();
+        let updated = false;
+        for (let m = 1; m < matchedCols.length; m++) {
+          const dupVals = sheet.getRange(2, matchedCols[m] + 1, lastRow - 1, 1).getValues();
+          for (let r = 0; r < primaryVals.length; r++) {
+            if (!String(primaryVals[r][0] || '').trim() && String(dupVals[r][0] || '').trim()) {
+              primaryVals[r][0] = dupVals[r][0];
+              updated = true;
+            }
+          }
+        }
+        if (updated) primaryRange.setValues(primaryVals);
+      }
+      sheet.getRange(1, primaryIdx + 1).setValue(canonical).setFontWeight('bold').setBackground('#f1f5f9');
+      for (let m = matchedCols.length - 1; m >= 1; m--) {
+        if (sheet.getLastColumn() > 1) {
+          sheet.deleteColumn(matchedCols[m] + 1);
+        }
+      }
+    }
+  });
+
+  // 3. 不足している見出し列があれば末尾に追加
+  const existingHeaders = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(v => String(v || '').trim());
+  REPORT_HEADERS.forEach(canonical => {
+    const idx = findHeaderColIndex(existingHeaders, [canonical], 0);
+    if (idx < 0) {
+      existingHeaders.push(canonical);
+      sheet.getRange(1, existingHeaders.length).setValue(canonical).setFontWeight('bold').setBackground('#f1f5f9');
+    }
+  });
+
+  // 4. 全18列を左（A列）から順番に指定の並び順へ整列
+  for (let targetIdx = 0; targetIdx < REPORT_HEADERS.length; targetIdx++) {
+    const canonical = REPORT_HEADERS[targetIdx];
+    const currentHeaders = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(v => String(v || '').trim());
+    const foundIdx = findHeaderColIndex(currentHeaders, [canonical], targetIdx);
+    if (foundIdx > targetIdx) {
+      const srcCol = foundIdx + 1;
+      const destCol = targetIdx + 1;
+      const colRange = sheet.getRange(1, srcCol, sheet.getMaxRows(), 1);
+      try {
+        sheet.moveColumns(colRange, destCol);
+      } catch (moveErr) {
+        sheet.getRange(1, 1, sheet.getMaxRows(), sheet.getLastColumn()).breakApart();
+        sheet.moveColumns(sheet.getRange(1, srcCol, sheet.getMaxRows(), 1), destCol);
+      }
+    }
+  }
+
+  SpreadsheetApp.flush();
+  return sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(v => String(v || '').trim());
+}
+
+// Apps Scriptエディタから手動で「実行」して今すぐ全18列を指定の並び順へ整列する関数
+function fixSheetColumnsNow() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = resolveReportSheet(ss);
+  ensureReportHeaders(sheet);
+}
+
+function readProductMasterFromSheet(ss) {
+  let sheet = ss.getSheetByName(PRODUCT_MASTER_SHEET);
+  if (!sheet) {
+    sheet = ss.insertSheet(PRODUCT_MASTER_SHEET);
+    sheet.getRange(1, 1).setValue('商品名').setFontWeight('bold').setBackground('#f1f5f9');
+    return [];
+  }
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return [];
+  const vals = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+  const list = [];
+  const seen = {};
+  vals.forEach((r, idx) => {
+    const name = String(r[0] || '').trim();
+    if (name && !seen[name]) {
+      seen[name] = true;
+      list.push({ id: 'sheet_prod_' + idx, name: name });
+    }
+  });
+  return list;
+}
+
+function writeProductMasterToSheet(ss, items) {
+  let sheet = ss.getSheetByName(PRODUCT_MASTER_SHEET);
+  if (!sheet) {
+    sheet = ss.insertSheet(PRODUCT_MASTER_SHEET);
+  }
+  sheet.clearContents();
+  sheet.getRange(1, 1).setValue('商品名').setFontWeight('bold').setBackground('#f1f5f9');
+  const seen = {};
+  const rows = [];
+  (Array.isArray(items) ? items : []).forEach(it => {
+    const name = typeof it === 'string' ? it.trim() : String(it && it.name ? it.name : '').trim();
+    if (name && !seen[name]) {
+      seen[name] = true;
+      rows.push([name]);
+    }
+  });
+  if (rows.length > 0) {
+    sheet.getRange(2, 1, rows.length, 1).setNumberFormat('@').setValues(rows);
+  }
+  return rows.length;
+}
+
+function readStoreMasterFromSheet(ss) {
+  let sheet = ss.getSheetByName(STORE_MASTER_SHEET);
+  if (!sheet) {
+    sheet = ss.insertSheet(STORE_MASTER_SHEET);
+    sheet.getRange(1, 1, 1, 2).setValues([['企業名', '店舗名']]).setFontWeight('bold').setBackground('#f1f5f9');
+    return {};
+  }
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return {};
+  const vals = sheet.getRange(2, 1, lastRow - 1, 2).getValues();
+  const map = {};
+  vals.forEach(r => {
+    const comp = String(r[0] || '').trim();
+    const st = String(r[1] || '').trim();
+    if (!comp) return;
+    if (!map[comp]) map[comp] = [];
+    if (st && map[comp].indexOf(st) < 0) map[comp].push(st);
+  });
+  return map;
+}
+
+function writeStoreMasterToSheet(ss, storesObj) {
+  let sheet = ss.getSheetByName(STORE_MASTER_SHEET);
+  if (!sheet) {
+    sheet = ss.insertSheet(STORE_MASTER_SHEET);
+  }
+  sheet.clearContents();
+  sheet.getRange(1, 1, 1, 2).setValues([['企業名', '店舗名']]).setFontWeight('bold').setBackground('#f1f5f9');
+  const rows = [];
+  if (storesObj && typeof storesObj === 'object') {
+    Object.keys(storesObj).forEach(comp => {
+      const list = Array.isArray(storesObj[comp]) ? storesObj[comp] : [];
+      if (list.length === 0) {
+        rows.push([comp, '']);
+      } else {
+        list.forEach(st => rows.push([comp, st]));
+      }
+    });
+  }
+  if (rows.length > 0) {
+    sheet.getRange(2, 1, rows.length, 2).setNumberFormat('@').setValues(rows);
+  }
+  return rows.length;
+}
+
+function saveBase64ImageToDrive(dataUrl, fileName) {
+  if (!dataUrl || String(dataUrl).indexOf('data:image/') !== 0) return '';
+  try {
+    const parts = String(dataUrl).split(',');
+    if (parts.length < 2) return '';
+    const mimeMatch = parts[0].match(/data:([^;]+);base64/);
+    const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+    const bytes = Utilities.base64Decode(parts[1]);
+    const blob = Utilities.newBlob(bytes, mimeType, fileName);
     const folders = DriveApp.getFoldersByName(PHOTO_FOLDER_NAME);
     const folder = folders.hasNext() ? folders.next() : DriveApp.createFolder(PHOTO_FOLDER_NAME);
     const file = folder.createFile(blob);
     file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
     return file.getUrl();
-  } catch (err) {
-    return '写真保存エラー: ' + err.message;
+  } catch (e) {
+    return '';
   }
-}
-
-function writeProductMasterToSheet(ss, items) {
-  let sheet = ss.getSheetByName(PRODUCT_MASTER_SHEET);
-  if (!sheet) sheet = ss.insertSheet(PRODUCT_MASTER_SHEET);
-  sheet.clear();
-  sheet.getRange(1, 1, 1, 2).setValues([['商品名', '更新日時']]).setFontWeight('bold');
-  const list = Array.isArray(items) ? items : [];
-  const nowStr = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
-  const rows = list.map(it => {
-    const nm = typeof it === 'string' ? it.trim() : String((it && it.name) || '').trim();
-    return [nm, nowStr];
-  }).filter(r => r[0]);
-  if (rows.length > 0) {
-    sheet.getRange(2, 1, rows.length, 2).setValues(rows);
-  }
-  return rows.length;
-}
-
-function doGet(e) {
-  const action = (e && e.parameter && e.parameter.action) ? String(e.parameter.action) : 'ping';
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-
-  // GET経由での商品マスタ保存フォールバック（スマホ・制限ブラウザ用）
-  if (action === 'syncProductsGet') {
-    let items = [];
-    try {
-      const raw = (e && e.parameter && e.parameter.items) ? String(e.parameter.items) : '[]';
-      items = JSON.parse(raw);
-    } catch (err) {}
-    const count = writeProductMasterToSheet(ss, items);
-    return jsonResponse({ status: 'success', version: GAS_SCRIPT_VERSION, count: count }, e);
-  }
-
-  if (action === 'getProducts') {
-    let sheet = ss.getSheetByName(PRODUCT_MASTER_SHEET);
-    if (!sheet) {
-      sheet = ss.insertSheet(PRODUCT_MASTER_SHEET);
-      sheet.getRange(1, 1, 1, 2).setValues([['商品名', '更新日時']]).setFontWeight('bold');
-    }
-    const lastRow = sheet.getLastRow();
-    const items = [];
-    const seen = {};
-    if (lastRow > 1) {
-      const vals = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
-      vals.forEach((r, idx) => {
-        const name = String(r[0] || '').trim();
-        if (name && !seen[name]) {
-          seen[name] = true;
-          items.push({ id: 'prod_' + idx + '_' + name, name: name });
-        }
-      });
-    }
-    if (items.length === 0) {
-      const repSheet = getReportSheet(ss);
-      const repLastRow = repSheet.getLastRow();
-      if (repLastRow > 1 && repSheet.getLastColumn() >= 9) {
-        const prodColVals = repSheet.getRange(2, 9, repLastRow - 1, 1).getValues();
-        prodColVals.forEach(r => {
-          const lines = String(r[0] || '').split(/\\r?\\n/);
-          lines.forEach(line => {
-            const name = line.trim();
-            if (name && name !== '名称未設定商品' && !seen[name]) {
-              seen[name] = true;
-              items.push({ id: 'prod_rep_' + items.length + '_' + name, name: name });
-            }
-          });
-        });
-      }
-    }
-    return jsonResponse({ status: 'ok', version: GAS_SCRIPT_VERSION, items: items }, e);
-  }
-
-  if (action === 'getStores') {
-    let sheet = ss.getSheetByName(STORE_MASTER_SHEET);
-    if (!sheet) {
-      sheet = ss.insertSheet(STORE_MASTER_SHEET);
-      sheet.getRange(1, 1, 1, 3).setValues([['企業名', '店舗名', '更新日時']]).setFontWeight('bold');
-      return jsonResponse({ status: 'ok', version: GAS_SCRIPT_VERSION, stores: {} }, e);
-    }
-    const lastRow = sheet.getLastRow();
-    const stores = {};
-    if (lastRow > 1) {
-      const vals = sheet.getRange(2, 1, lastRow - 1, 2).getValues();
-      vals.forEach(r => {
-        const comp = String(r[0] || '').trim();
-        const st = String(r[1] || '').trim();
-        if (comp) {
-          if (!stores[comp]) stores[comp] = [];
-          if (st && stores[comp].indexOf(st) === -1) stores[comp].push(st);
-        }
-      });
-    }
-    return jsonResponse({ status: 'ok', version: GAS_SCRIPT_VERSION, stores: stores }, e);
-  }
-
-  const reportSheet = getReportSheet(ss);
-  ensureReportHeaders(reportSheet);
-  return jsonResponse({
-    status: 'ok',
-    version: GAS_SCRIPT_VERSION,
-    sheetName: reportSheet.getName(),
-    lastRow: reportSheet.getLastRow()
-  }, e);
 }
 
 function doPost(e) {
   const lock = LockService.getScriptLock();
-  lock.waitLock(25000);
+  lock.tryLock(15000);
   try {
-    const raw = (e && e.postData && e.postData.contents) ? e.postData.contents : '{}';
-    const data = JSON.parse(raw);
-    const action = data.action || 'appendReport';
+    if (!e || !e.postData || !e.postData.contents) {
+      return jsonResponse({ status: 'error', message: 'Empty payload' });
+    }
+    const data = JSON.parse(e.postData.contents);
+    const action = String(data.action || 'appendReport');
     const ss = SpreadsheetApp.getActiveSpreadsheet();
 
     if (action === 'syncProducts') {
-      const count = writeProductMasterToSheet(ss, data.items);
+      const count = writeProductMasterToSheet(ss, data.items || []);
       return jsonResponse({ status: 'success', version: GAS_SCRIPT_VERSION, count: count });
     }
 
     if (action === 'syncStores') {
-      let sheet = ss.getSheetByName(STORE_MASTER_SHEET);
-      if (!sheet) sheet = ss.insertSheet(STORE_MASTER_SHEET);
-      sheet.clear();
-      sheet.getRange(1, 1, 1, 3).setValues([['企業名', '店舗名', '更新日時']]).setFontWeight('bold');
-      const storesObj = (data.stores && typeof data.stores === 'object') ? data.stores : {};
-      const nowStr = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
-      const rows = [];
-      Object.keys(storesObj).forEach(comp => {
-        const list = Array.isArray(storesObj[comp]) ? storesObj[comp] : [];
-        if (list.length === 0) {
-          rows.push([comp, '', nowStr]);
-        } else {
-          list.forEach(st => rows.push([comp, String(st || '').trim(), nowStr]));
-        }
-      });
-      if (rows.length > 0) {
-        sheet.getRange(2, 1, rows.length, 3).setValues(rows);
-      }
-      return jsonResponse({ status: 'success', version: GAS_SCRIPT_VERSION, count: rows.length });
+      const count = writeStoreMasterToSheet(ss, data.stores || {});
+      return jsonResponse({ status: 'success', version: GAS_SCRIPT_VERSION, count: count });
+    }
+
+    if (action === 'fixColumns') {
+      const sheet = resolveReportSheet(ss);
+      const headers = ensureReportHeaders(sheet);
+      return jsonResponse({ status: 'success', version: GAS_SCRIPT_VERSION, headers: headers });
     }
 
     if (action === 'cleanupTestRows') {
-      const sheet = getReportSheet(ss);
+      const sheet = resolveReportSheet(ss);
       const lastRow = sheet.getLastRow();
       let deleted = 0;
-      for (let r = lastRow; r >= 2; r--) {
-        const rowVals = sheet.getRange(r, 1, 1, Math.min(sheet.getLastColumn(), REPORT_HEADERS.length)).getValues()[0];
-        const joined = rowVals.join(' ');
-        if (/テスト|サンプル|デモ|test|demo/i.test(joined)) {
-          sheet.deleteRow(r);
-          deleted++;
+      if (lastRow >= 2) {
+        const vals = sheet.getRange(2, 1, lastRow - 1, Math.max(1, sheet.getLastColumn())).getValues();
+        for (let r = vals.length - 1; r >= 0; r--) {
+          const joined = vals[r].join(' ');
+          if (/テスト|サンプル|デモ|test/i.test(joined)) {
+            sheet.deleteRow(r + 2);
+            deleted++;
+          }
         }
       }
       return jsonResponse({ status: 'success', version: GAS_SCRIPT_VERSION, deleted: deleted });
     }
 
-    const sheet = getReportSheet(ss);
+    const sheet = resolveReportSheet(ss);
     const activeHeaders = ensureReportHeaders(sheet);
+    const products = Array.isArray(data.products) ? data.products : [];
+    const productNames = products.map(p => String(p.name || '')).join('\\n');
+    const productPrices = products.map(p => String(p.price ?? 0)).join('\\n');
+    const productPrepared = products.map(p => String(p.prepared ?? 0)).join('\\n');
+    const productSold = products.map(p => String(p.sold ?? 0)).join('\\n');
+    const totalSales = Number(data.totalSales) || 0;
 
-    const items = Array.isArray(data.products) ? data.products : [];
-    const productNames = items.map(p => p.name || '').join('\\n');
-    const productPrices = items.map(p => Number(p.price || 0)).join('\\n');
-    const productPrepared = items.map(p => Number(p.prepared || 0)).join('\\n');
-    const productSold = items.map(p => Number(p.sold || 0)).join('\\n');
-    const totalSales = Number(data.totalSales || 0);
-
-    const photos = Array.isArray(data.photos) ? data.photos : [];
-    const prefix = (data.date || 'report') + '_' + (data.storeName || 'store');
-    const photoUrl0 = savePhotoToDrive(photos[0], prefix + '_1_外観.jpg');
-    const photoUrl1 = savePhotoToDrive(photos[1], prefix + '_2_告知物.jpg');
-    const photoUrl2 = savePhotoToDrive(photos[2], prefix + '_3_販売会.jpg');
-
+    const photos = Array.isArray(data.photos) ? data.photos : ['', '', ''];
+    const baseTag = (data.date || 'report') + '_' + (data.storeName || 'store');
+    const photoUrl0 = saveBase64ImageToDrive(photos[0], baseTag + '_1_外観.jpg');
+    const photoUrl1 = saveBase64ImageToDrive(photos[1], baseTag + '_2_ポスター.jpg');
+    const photoUrl2 = saveBase64ImageToDrive(photos[2], baseTag + '_3_販売会.jpg');
     const submittedAt = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
 
     const valueByField = [
-      { keys: ['実施日', '日付', '開催日'], val: String(data.date || ''), isText: true },
-      { keys: ['企業名', '会社名'], val: String(data.companyName || ''), isText: true },
-      { keys: ['店舗名', '店舗'], val: String(data.storeName || ''), isText: true },
-      { keys: ['担当者', '担当'], val: String(data.staffName || ''), isText: true },
-      { keys: ['入店時間', '入店'], val: String(data.entryTime || ''), isText: true },
-      { keys: ['販売開始時間', '開始時間'], val: String(data.startTime || ''), isText: true },
-      { keys: ['終了時間', '販売終了時間'], val: String(data.endTime || ''), isText: true },
-      { keys: ['退店時間', '退店'], val: String(data.exitTime || ''), isText: true },
-      { keys: ['商品名', '販売商品'], val: productNames, isText: true },
-      { keys: ['販売価格', '価格', '単価'], val: productPrices, isText: true },
-      { keys: ['販売準備数', '準備数'], val: productPrepared, isText: true },
-      { keys: ['販売数'], val: productSold, isText: true },
-      { keys: ['売上合計金額', '売上合計', '合計金額'], val: totalSales, isText: false },
-      { keys: ['店舗外観写真URL', '店舗外観URL', '店舗外観写真'], val: photoUrl0, isText: false },
-      { keys: ['ポスター・告知物URL', 'ポスター写真URL', 'ポスターURL', '告知物URL'], val: photoUrl1, isText: false },
-      { keys: ['販売会の写真URL', '販売会写真URL', '販売会URL'], val: photoUrl2, isText: false },
-      { keys: ['現場所感', '所感', '備考'], val: String(data.notes || ''), isText: true },
-      { keys: ['送信日時', '登録日時'], val: submittedAt, isText: true }
+      { keys: HEADER_ALIASES['実施日'], val: String(data.date || ''), isText: true },
+      { keys: HEADER_ALIASES['企業名'], val: String(data.companyName || ''), isText: true },
+      { keys: HEADER_ALIASES['店舗名'], val: String(data.storeName || ''), isText: true },
+      { keys: HEADER_ALIASES['担当者'], val: String(data.staffName || ''), isText: true },
+      { keys: HEADER_ALIASES['入店時間'], val: String(data.entryTime || ''), isText: true },
+      { keys: HEADER_ALIASES['販売開始時間'], val: String(data.startTime || ''), isText: true },
+      { keys: HEADER_ALIASES['販売終了時間'], val: String(data.endTime || ''), isText: true },
+      { keys: HEADER_ALIASES['退店時間'], val: String(data.exitTime || ''), isText: true },
+      { keys: HEADER_ALIASES['販売商品'], val: productNames, isText: true },
+      { keys: HEADER_ALIASES['販売価格'], val: productPrices, isText: true },
+      { keys: HEADER_ALIASES['販売準備数'], val: productPrepared, isText: true },
+      { keys: HEADER_ALIASES['販売数'], val: productSold, isText: true },
+      { keys: HEADER_ALIASES['売上合計金額'], val: totalSales, isText: false },
+      { keys: HEADER_ALIASES['店舗外観写真URL'], val: photoUrl0, isText: false },
+      { keys: HEADER_ALIASES['ポスター・告知物写真URL'], val: photoUrl1, isText: false },
+      { keys: HEADER_ALIASES['販売会の写真URL'], val: photoUrl2, isText: false },
+      { keys: HEADER_ALIASES['現場所感'], val: String(data.notes || ''), isText: true },
+      { keys: HEADER_ALIASES['送信日時'], val: submittedAt, isText: true }
     ];
 
     const totalCols = Math.max(activeHeaders.length, REPORT_HEADERS.length);
@@ -1090,7 +1155,7 @@ function doPost(e) {
     const targetRow = sheet.getLastRow() + 1;
 
     valueByField.forEach(entry => {
-      const colIdx = findHeaderColIndex(activeHeaders, entry.keys);
+      const colIdx = findHeaderColIndex(activeHeaders, entry.keys, 0);
       if (colIdx >= 0) {
         newRow[colIdx] = entry.val;
         if (entry.isText) {
@@ -2735,8 +2800,10 @@ function jsonResponse(obj, e) {
 
             document.getElementById('field-notes').value = rep.notes || '';
 
-            document.getElementById('editing-banner-text').textContent = `${rep.date} ${rep.companyName} ${cleanSt} の報告書を編集中`;
-            document.getElementById('editing-banner').classList.remove('hidden');
+            const editBannerText = document.getElementById('editing-banner-text');
+            const editBanner = document.getElementById('editing-banner');
+            if (editBannerText) editBannerText.textContent = `${rep.date} ${rep.companyName} ${cleanSt} の報告書を編集中`;
+            if (editBanner) editBanner.classList.remove('hidden');
 
             closeHistoryModal();
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2811,7 +2878,7 @@ function jsonResponse(obj, e) {
         function resetFormToInitial() {
             currentEditingId = null;
             currentPreviewPayload = null;
-            document.getElementById('editing-banner').classList.add('hidden');
+            document.getElementById('editing-banner')?.classList.add('hidden');
             document.getElementById('report-date').value = getTodayYMD();
             document.getElementById('staff-name').value = '';
             document.getElementById('company-select').value = '';
@@ -3067,6 +3134,20 @@ function jsonResponse(obj, e) {
                     showToast('テスト行の削除に失敗しました（最新GASのデプロイが必要です）', 'error');
                 }
             }, '削除を実行');
+        }
+
+        async function reorderSheetColumnsFromApp() {
+            if (!gasWebAppUrl) {
+                showToast('先に「URLを保存して連携」を行ってください', 'warning');
+                return;
+            }
+            try {
+                showToast('スプレッドシートの列順を整列しています...', 'info');
+                await postWithRetry(gasWebAppUrl, { action: 'fixColumns' }, 2);
+                showToast('スプレッドシートの全18列を指定の並び順に整列しました', 'success');
+            } catch (e) {
+                showToast('列順の整列に失敗しました（最新GASの保存・新バージョンデプロイを行ってください）', 'error');
+            }
         }
 
         // ==================== マスタ双方向同期（シート連携） ====================
