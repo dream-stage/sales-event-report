@@ -1957,24 +1957,33 @@ function jsonResponse(obj, e) {
             }
             productMaster.push({ id: 'prod_' + Date.now(), name });
             input.value = '';
-            persistProductMaster();
+            persistProductMaster(false);
             renderProductMasterList();
             if (!silent) showToast(`「${name}」を追加しました`, 'success');
+            if (gasWebAppUrl) {
+                syncProductMasterToSheet(silent);
+            }
         }
 
         function deleteProductMasterItem(idx) {
             productMaster.splice(idx, 1);
-            persistProductMaster();
+            persistProductMaster(false);
             renderProductMasterList();
+            if (gasWebAppUrl) {
+                syncProductMasterToSheet(true);
+            }
         }
 
         function confirmClearProductMaster() {
             if (productMaster.length === 0) return;
             openCustomConfirm('商品リストの全削除', '登録済みの商品リストをすべて削除しますか？', () => {
                 productMaster = [];
-                persistProductMaster();
+                persistProductMaster(false);
                 renderProductMasterList();
                 showToast('商品リストをすべて削除しました', 'info');
+                if (gasWebAppUrl) {
+                    syncProductMasterToSheet(false);
+                }
             }, 'すべて削除');
         }
 
@@ -2968,7 +2977,8 @@ function jsonResponse(obj, e) {
         // ==================== マスタ双方向同期（シート連携） ====================
         function fetchGasJsonWithFallback(url, action, timeoutMs = 9000) {
             const sep = url.includes('?') ? '&' : '?';
-            const fullUrl = `${url}${sep}action=${encodeURIComponent(action)}&t=${Date.now()}`;
+            const nonce = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+            const fullUrl = `${url}${sep}action=${encodeURIComponent(action)}&_nc=${nonce}`;
 
             const tryFetch = () => new Promise((resolve, reject) => {
                 const controller = new AbortController();
@@ -3023,6 +3033,7 @@ function jsonResponse(obj, e) {
                 if (!silent) showToast('先に「シート連携」からURLを設定してください', 'warning');
                 return;
             }
+            updateProductMasterStatusBadge(`シートへ保存中... (${productMaster.length}件)`);
             try {
                 const resJson = await postWithRetry(gasWebAppUrl, {
                     action: 'syncProducts',
@@ -3031,20 +3042,20 @@ function jsonResponse(obj, e) {
                 if (resJson && resJson.version === GAS_VERSION_TAG) {
                     isSheetLatestGas = true;
                     setProductDirtyFlag(false);
-                    updateProductMasterStatusBadge(`シート同期済 (${productMaster.length}件)`);
-                    if (!silent) showToast(`スプレッドシートへ ${resJson.count} 件保存しました`, 'success');
+                    updateProductMasterStatusBadge(`✅ シート保存完了 (${productMaster.length}件)`);
+                    if (!silent) showToast(`スプレッドシート「商品マスタ」へ ${resJson.count} 件保存しました`, 'success');
                 } else {
                     isSheetLatestGas = false;
-                    updateProductMasterStatusBadge(`端末保存済・GAS要更新 (${productMaster.length}件)`);
+                    updateProductMasterStatusBadge(`⚠️ シート未反映（GAS新デプロイが必要）`);
                     const hint = document.getElementById('product-master-sync-hint');
                     if (hint) {
-                        hint.innerHTML = '<span class="text-amber-700 font-bold">※ スプレッドシート側のGASが旧バージョンのため、シートの「商品マスタ」へ保存できていません。「シート連携」＞「GASコードをコピー」でスプレッドシート側を更新・再デプロイすると他のスマホでも自動同期されます。</span>';
+                        hint.innerHTML = '<span class="text-rose-700 font-bold">【重要】スプレッドシート側のGASが旧バージョンのため、シートに保存されていません。「シート連携」＞「GASコードをコピー」で貼り付け後、必ず「デプロイを管理」＞鉛筆アイコン＞「新バージョン」でデプロイしてください。</span>';
                     }
-                    if (!silent) showToast('スプレッドシート側のGASコードを更新・新デプロイしてください', 'warning');
+                    showToast('スプレッドシート側のGASが旧バージョンのためシートに保存できませんでした', 'error');
                 }
             } catch (e) {
-                updateProductMasterStatusBadge(`端末保存済 (${productMaster.length}件)`);
-                if (!silent) showToast('シートへの保存に失敗しました', 'error');
+                updateProductMasterStatusBadge(`⚠️ 通信エラー・端末には保存済 (${productMaster.length}件)`);
+                if (!silent) showToast('シートへの保存に失敗しました（通信状況をご確認ください）', 'error');
             }
         }
 
@@ -3074,7 +3085,7 @@ function jsonResponse(obj, e) {
                         productMaster = loaded;
                         writeProductMasterToAllLocalStorages(loaded);
                         updateProductMasterBadge();
-                        updateProductMasterStatusBadge(`シート同期済 (${loaded.length}件)`);
+                        updateProductMasterStatusBadge(`✅ シート同期済 (${loaded.length}件)`);
                         renderProductMasterList();
                         renderProductRows();
                         if (!silent) showToast(`シートから ${loaded.length} 件の商品リストを読み込みました`, 'success');
@@ -3082,14 +3093,14 @@ function jsonResponse(obj, e) {
                         if (productMaster.length > 0) {
                             await syncProductMasterToSheet(true);
                         }
-                        if (!silent) showToast('シートの「商品マスタ」は空でした', 'info');
+                        if (!silent) showToast('シートの「商品マスタ」は0件でした', 'info');
                     }
                 } else {
                     const hint = document.getElementById('product-master-sync-hint');
                     if (hint) {
-                        hint.innerHTML = '<span class="text-amber-700 font-bold">※ スプレッドシート側のGASが旧バージョンのため「商品マスタ」読込に未対応です。「シート連携」＞「GASコードをコピー」でスプレッドシート側のApps Scriptを更新・再デプロイしてください。</span>';
+                        hint.innerHTML = '<span class="text-rose-700 font-bold">【重要】スプレッドシート側のGASが旧バージョンのため「商品マスタ」が読み込めません。「シート連携」＞「GASコードをコピー」で貼り付け後、「デプロイを管理」＞鉛筆アイコン＞「新バージョン」でデプロイしてください。</span>';
                     }
-                    if (!silent) showToast('スプレッドシート側のGASが旧バージョンのため商品マスタを読み込めませんでした', 'warning');
+                    if (!silent) showToast('スプレッドシート側のGASが旧バージョンのため読み込めませんでした', 'error');
                 }
             } catch (e) {
                 if (!silent) showToast('シートからの読込に失敗しました', 'error');
@@ -3245,14 +3256,33 @@ function jsonResponse(obj, e) {
                 }
             });
 
-            // スマホのホーム画面・タブ復帰時に自動で商品リスト・店舗マスタを再同期
+            // スマホのホーム画面・タブ復帰時にストレージとスプレッドシートから確実に再同期
             window.addEventListener('pageshow', () => {
                 hydrateAsyncStorages();
-            });
-            document.addEventListener('visibilitychange', () => {
-                if (document.visibilityState === 'visible' && gasWebAppUrl) {
+                if (gasWebAppUrl) {
                     fetchProductMasterFromSheet(true);
                     fetchStoreMasterFromSheet(true);
+                }
+            });
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                    hydrateAsyncStorages();
+                    if (gasWebAppUrl) {
+                        fetchProductMasterFromSheet(true);
+                        fetchStoreMasterFromSheet(true);
+                    }
+                }
+            });
+            window.addEventListener('storage', (e) => {
+                if (e.key === PRODUCT_MASTER_STORAGE_KEY && e.newValue) {
+                    try {
+                        const parsed = sanitizeProductMasterList(JSON.parse(e.newValue));
+                        if (parsed.length > 0) {
+                            productMaster = parsed;
+                            updateProductMasterBadge();
+                            renderProductRows();
+                        }
+                    } catch (err) {}
                 }
             });
 
