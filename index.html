@@ -813,21 +813,59 @@ function ensureReportHeaders(sheet) {
   const lastCol = Math.max(sheet.getLastColumn(), REPORT_HEADERS.length);
   const firstRow = sheet.getRange(1, 1, 1, lastCol).getValues()[0].map(v => String(v || '').trim());
 
-  if (firstRow[0] === '送信日時' && firstRow[1] === '実施日' && sheet.getLastColumn() > 1) {
-    const lastRow = sheet.getLastRow();
-    if (lastRow > 1) {
-      const oldTimestamps = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
-      sheet.deleteColumn(1);
-      sheet.getRange(2, REPORT_HEADERS.length, lastRow - 1, 1).setValues(oldTimestamps);
-    } else {
-      sheet.deleteColumn(1);
-    }
+  // 1行目が完全に空（新規シート）の場合のみ標準18列見出しを作成
+  if (firstRow.every(v => !v)) {
+    const headerRange = sheet.getRange(1, 1, 1, REPORT_HEADERS.length);
+    headerRange.setValues([REPORT_HEADERS]);
+    headerRange.setFontWeight('bold');
+    headerRange.setBackground('#f1f5f9');
+    return REPORT_HEADERS;
   }
 
-  const headerRange = sheet.getRange(1, 1, 1, REPORT_HEADERS.length);
-  headerRange.setValues([REPORT_HEADERS]);
-  headerRange.setFontWeight('bold');
-  headerRange.setBackground('#f1f5f9');
+  // 既存シートの見出し名に合わせて不足している必須列のみ末尾に補完
+  const aliases = {
+    '実施日': ['実施日', '日付', '開催日'],
+    '企業名': ['企業名', '会社名'],
+    '店舗名': ['店舗名', '店舗'],
+    '担当者': ['担当者', '担当'],
+    '入店時間': ['入店時間', '入店'],
+    '販売開始時間': ['販売開始時間', '開始時間'],
+    '終了時間': ['終了時間', '販売終了時間'],
+    '退店時間': ['退店時間', '退店'],
+    '商品名': ['商品名', '販売商品'],
+    '販売価格': ['販売価格', '価格', '単価'],
+    '販売準備数': ['販売準備数', '準備数'],
+    '販売数': ['販売数'],
+    '売上合計金額': ['売上合計金額', '売上合計', '合計金額'],
+    '店舗外観写真URL': ['店舗外観写真URL', '店舗外観URL', '店舗外観写真'],
+    'ポスター・告知物URL': ['ポスター・告知物URL', 'ポスター写真URL', 'ポスターURL', '告知物URL'],
+    '販売会の写真URL': ['販売会の写真URL', '販売会写真URL', '販売会URL'],
+    '現場所感': ['現場所感', '所感', '備考'],
+    '送信日時': ['送信日時', '登録日時']
+  };
+
+  const headers = firstRow.slice();
+  REPORT_HEADERS.forEach(reqHeader => {
+    const candidateNames = aliases[reqHeader] || [reqHeader];
+    const found = headers.some(h => candidateNames.includes(h));
+    if (!found) {
+      headers.push(reqHeader);
+      const newColIdx = headers.length;
+      const cell = sheet.getRange(1, newColIdx);
+      cell.setValue(reqHeader);
+      cell.setFontWeight('bold');
+      cell.setBackground('#f1f5f9');
+    }
+  });
+  return headers;
+}
+
+function findHeaderColIndex(headers, candidateNames) {
+  for (let i = 0; i < headers.length; i++) {
+    const h = String(headers[i] || '').trim();
+    if (candidateNames.includes(h)) return i;
+  }
+  return -1;
 }
 
 function savePhotoToDrive(base64DataUrl, fileName) {
@@ -1009,7 +1047,7 @@ function doPost(e) {
     }
 
     const sheet = getReportSheet(ss);
-    ensureReportHeaders(sheet);
+    const activeHeaders = ensureReportHeaders(sheet);
 
     const items = Array.isArray(data.products) ? data.products : [];
     const productNames = items.map(p => p.name || '').join('\\n');
@@ -1026,31 +1064,42 @@ function doPost(e) {
 
     const submittedAt = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
 
-    const newRow = [
-      String(data.date || ''),
-      String(data.companyName || ''),
-      String(data.storeName || ''),
-      String(data.staffName || ''),
-      String(data.entryTime || ''),
-      String(data.startTime || ''),
-      String(data.endTime || ''),
-      String(data.exitTime || ''),
-      productNames,
-      productPrices,
-      productPrepared,
-      productSold,
-      totalSales,
-      photoUrl0,
-      photoUrl1,
-      photoUrl2,
-      String(data.notes || ''),
-      submittedAt
+    const valueByField = [
+      { keys: ['実施日', '日付', '開催日'], val: String(data.date || ''), isText: true },
+      { keys: ['企業名', '会社名'], val: String(data.companyName || ''), isText: true },
+      { keys: ['店舗名', '店舗'], val: String(data.storeName || ''), isText: true },
+      { keys: ['担当者', '担当'], val: String(data.staffName || ''), isText: true },
+      { keys: ['入店時間', '入店'], val: String(data.entryTime || ''), isText: true },
+      { keys: ['販売開始時間', '開始時間'], val: String(data.startTime || ''), isText: true },
+      { keys: ['終了時間', '販売終了時間'], val: String(data.endTime || ''), isText: true },
+      { keys: ['退店時間', '退店'], val: String(data.exitTime || ''), isText: true },
+      { keys: ['商品名', '販売商品'], val: productNames, isText: true },
+      { keys: ['販売価格', '価格', '単価'], val: productPrices, isText: true },
+      { keys: ['販売準備数', '準備数'], val: productPrepared, isText: true },
+      { keys: ['販売数'], val: productSold, isText: true },
+      { keys: ['売上合計金額', '売上合計', '合計金額'], val: totalSales, isText: false },
+      { keys: ['店舗外観写真URL', '店舗外観URL', '店舗外観写真'], val: photoUrl0, isText: false },
+      { keys: ['ポスター・告知物URL', 'ポスター写真URL', 'ポスターURL', '告知物URL'], val: photoUrl1, isText: false },
+      { keys: ['販売会の写真URL', '販売会写真URL', '販売会URL'], val: photoUrl2, isText: false },
+      { keys: ['現場所感', '所感', '備考'], val: String(data.notes || ''), isText: true },
+      { keys: ['送信日時', '登録日時'], val: submittedAt, isText: true }
     ];
 
+    const totalCols = Math.max(activeHeaders.length, REPORT_HEADERS.length);
+    const newRow = new Array(totalCols).fill('');
     const targetRow = sheet.getLastRow() + 1;
-    const range = sheet.getRange(targetRow, 1, 1, REPORT_HEADERS.length);
-    sheet.getRange(targetRow, 1, 1, 12).setNumberFormat('@');
-    sheet.getRange(targetRow, 18, 1, 1).setNumberFormat('@');
+
+    valueByField.forEach(entry => {
+      const colIdx = findHeaderColIndex(activeHeaders, entry.keys);
+      if (colIdx >= 0) {
+        newRow[colIdx] = entry.val;
+        if (entry.isText) {
+          sheet.getRange(targetRow, colIdx + 1).setNumberFormat('@');
+        }
+      }
+    });
+
+    const range = sheet.getRange(targetRow, 1, 1, totalCols);
     range.setValues([newRow]);
     range.setVerticalAlignment('top');
 
