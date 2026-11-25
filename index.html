@@ -178,19 +178,19 @@
 
             <div class="p-5 grid grid-cols-2 sm:grid-cols-4 gap-3.5">
                 <div>
-                    <label for="time-entry" class="block text-xs font-bold text-slate-700 mb-1.5">入店時間</label>
+                    <label for="time-entry" class="block text-xs font-bold text-slate-700 mb-1.5">入店時間 <span class="text-rose-500">*</span></label>
                     <input type="time" id="time-entry" onchange="updateTimeSummary()" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-white text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
                 </div>
                 <div>
-                    <label for="time-start" class="block text-xs font-bold text-slate-700 mb-1.5">販売開始時間</label>
+                    <label for="time-start" class="block text-xs font-bold text-slate-700 mb-1.5">販売開始時間 <span class="text-rose-500">*</span></label>
                     <input type="time" id="time-start" onchange="updateTimeSummary()" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-white text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
                 </div>
                 <div>
-                    <label for="time-end" class="block text-xs font-bold text-slate-700 mb-1.5">販売終了時間</label>
+                    <label for="time-end" class="block text-xs font-bold text-slate-700 mb-1.5">販売終了時間 <span class="text-rose-500">*</span></label>
                     <input type="time" id="time-end" onchange="updateTimeSummary()" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-white text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
                 </div>
                 <div>
-                    <label for="time-exit" class="block text-xs font-bold text-slate-700 mb-1.5">退店時間</label>
+                    <label for="time-exit" class="block text-xs font-bold text-slate-700 mb-1.5">退店時間 <span class="text-rose-500">*</span></label>
                     <input type="time" id="time-exit" onchange="updateTimeSummary()" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-white text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
                 </div>
             </div>
@@ -260,7 +260,7 @@
                 <!-- 写真1: 店舗外観 -->
                 <div class="border border-slate-200 rounded-2xl p-3 bg-slate-50/50 flex flex-col">
                     <div class="flex items-center justify-between mb-2">
-                        <span class="text-xs font-bold text-slate-700">① 店舗外観写真</span>
+                        <span class="text-xs font-bold text-slate-700">① 店舗外観写真 <span class="text-rose-500">*</span></span>
                         <button type="button" id="photo-clear-0" onclick="removePhoto(0)" class="hidden text-[11px] text-rose-600 hover:text-rose-800 font-semibold">削除</button>
                     </div>
                     <label for="photo-input-0" id="photo-dropzone-0" class="flex-1 min-h-[140px] rounded-xl border-2 border-dashed border-slate-300 hover:border-indigo-400 bg-white flex flex-col items-center justify-center p-3 cursor-pointer transition overflow-hidden relative group">
@@ -282,7 +282,7 @@
                 <!-- 写真2: ポスター・告知物 -->
                 <div class="border border-slate-200 rounded-2xl p-3 bg-slate-50/50 flex flex-col">
                     <div class="flex items-center justify-between mb-2">
-                        <span class="text-xs font-bold text-slate-700">② ポスター・告知物</span>
+                        <span class="text-xs font-bold text-slate-700">② ポスター・告知物 <span class="text-rose-500">*</span></span>
                         <button type="button" id="photo-clear-1" onclick="removePhoto(1)" class="hidden text-[11px] text-rose-600 hover:text-rose-800 font-semibold">削除</button>
                     </div>
                     <label for="photo-input-1" id="photo-dropzone-1" class="flex-1 min-h-[140px] rounded-xl border-2 border-dashed border-slate-300 hover:border-indigo-400 bg-white flex flex-col items-center justify-center p-3 cursor-pointer transition overflow-hidden relative group">
@@ -304,7 +304,7 @@
                 <!-- 写真3: 販売会の写真 -->
                 <div class="border border-slate-200 rounded-2xl p-3 bg-slate-50/50 flex flex-col">
                     <div class="flex items-center justify-between mb-2">
-                        <span class="text-xs font-bold text-slate-700">③ 販売会の写真</span>
+                        <span class="text-xs font-bold text-slate-700">③ 販売会の写真 <span class="text-rose-500">*</span></span>
                         <button type="button" id="photo-clear-2" onclick="removePhoto(2)" class="hidden text-[11px] text-rose-600 hover:text-rose-800 font-semibold">削除</button>
                     </div>
                     <label for="photo-input-2" id="photo-dropzone-2" class="flex-1 min-h-[140px] rounded-xl border-2 border-dashed border-slate-300 hover:border-indigo-400 bg-white flex flex-col items-center justify-center p-3 cursor-pointer transition overflow-hidden relative group">
@@ -446,14 +446,14 @@
                     <div class="flex flex-wrap items-center justify-between gap-2">
                         <div class="flex items-center gap-2">
                             <span class="text-xs font-bold text-slate-700">登録済みの商品一覧</span>
-                            <span id="product-master-save-status" class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">自動保存有効</span>
+                            <span id="product-master-save-status" class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">端末保存有効</span>
                         </div>
                         <button type="button" onclick="confirmClearProductMaster()" class="text-[11px] text-slate-500 hover:text-rose-600 underline">
                             すべて削除
                         </button>
                     </div>
-                    <p class="text-[11px] text-slate-500 leading-relaxed">
-                        「シート連携」を設定するとスプレッドシートの「商品マスタ」シートにも永久保存されます。
+                    <p id="product-master-sync-hint" class="text-[11px] text-slate-500 leading-relaxed">
+                        登録した商品は端末に自動保存され、スプレッドシート側のGASを最新化すると「商品マスタ」シートにも永久保存されます。
                     </p>
                     <div id="product-master-list" class="divide-y divide-slate-100 border border-slate-200 rounded-xl bg-white overflow-hidden">
                         <!-- JSで生成 -->
@@ -726,7 +726,9 @@
         const GAS_VERSION_TAG = 'v9_full_sync';
         const GAS_URL_STORAGE_KEY = 'sales_report_gas_url_v3';
         const PRODUCT_MASTER_STORAGE_KEY = 'sales_report_product_master_v3';
+        const PRODUCT_DIRTY_STORAGE_KEY = 'sales_report_product_dirty_v3';
         const STORE_MASTER_STORAGE_KEY = 'sales_report_store_master_v3';
+        const STORE_DIRTY_STORAGE_KEY = 'sales_report_store_dirty_v3';
         const REPORTS_STORAGE_KEY = 'sales_report_history_v3';
         const IDB_DB_NAME = 'SalesReportAppDB_v3';
         const IDB_STORE_NAME = 'kv_store';
@@ -862,7 +864,7 @@ function doGet(e) {
         if (name) items.push({ id: 'prod_' + idx + '_' + name, name: name });
       });
     }
-    return jsonResponse({ status: 'ok', version: GAS_SCRIPT_VERSION, items: items });
+    return jsonResponse({ status: 'ok', version: GAS_SCRIPT_VERSION, items: items }, e);
   }
 
   if (action === 'getStores') {
@@ -870,7 +872,7 @@ function doGet(e) {
     if (!sheet) {
       sheet = ss.insertSheet(STORE_MASTER_SHEET);
       sheet.getRange(1, 1, 1, 3).setValues([['企業名', '店舗名', '更新日時']]).setFontWeight('bold');
-      return jsonResponse({ status: 'ok', version: GAS_SCRIPT_VERSION, stores: {} });
+      return jsonResponse({ status: 'ok', version: GAS_SCRIPT_VERSION, stores: {} }, e);
     }
     const lastRow = sheet.getLastRow();
     const stores = {};
@@ -885,7 +887,7 @@ function doGet(e) {
         }
       });
     }
-    return jsonResponse({ status: 'ok', version: GAS_SCRIPT_VERSION, stores: stores });
+    return jsonResponse({ status: 'ok', version: GAS_SCRIPT_VERSION, stores: stores }, e);
   }
 
   const reportSheet = getReportSheet(ss);
@@ -895,7 +897,7 @@ function doGet(e) {
     version: GAS_SCRIPT_VERSION,
     sheetName: reportSheet.getName(),
     lastRow: reportSheet.getLastRow()
-  });
+  }, e);
 }
 
 function doPost(e) {
@@ -1020,9 +1022,16 @@ function doPost(e) {
   }
 }
 
-function jsonResponse(obj) {
+function jsonResponse(obj, e) {
+  const json = JSON.stringify(obj);
+  const cb = e && e.parameter && e.parameter.callback ? String(e.parameter.callback).replace(/[^a-zA-Z0-9_$.]/g, '') : '';
+  if (cb) {
+    return ContentService
+      .createTextOutput(cb + '(' + json + ');')
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
   return ContentService
-    .createTextOutput(JSON.stringify(obj))
+    .createTextOutput(json)
     .setMimeType(ContentService.MimeType.JSON);
 }
 `;
@@ -1277,6 +1286,7 @@ function jsonResponse(obj) {
 
         let productMaster = (() => {
             const sources = [
+                safeCookieGet(PRODUCT_MASTER_STORAGE_KEY),
                 safeWindowNameGet(PRODUCT_MASTER_STORAGE_KEY),
                 safeStorageGet(PRODUCT_MASTER_STORAGE_KEY),
                 safeSessionGet(PRODUCT_MASTER_STORAGE_KEY)
@@ -1314,8 +1324,17 @@ function jsonResponse(obj) {
         let uploadedPhotos = ['', '', ''];
         let currentEditingId = null;
         let currentPreviewPayload = null;
-        let hasUserModifiedProducts = false;
-        let hasUserModifiedStores = false;
+        let hasUserModifiedProducts = (
+            safeStorageGet(PRODUCT_DIRTY_STORAGE_KEY) === '1' ||
+            safeSessionGet(PRODUCT_DIRTY_STORAGE_KEY) === '1' ||
+            safeCookieGet(PRODUCT_DIRTY_STORAGE_KEY) === '1'
+        );
+        let hasUserModifiedStores = (
+            safeStorageGet(STORE_DIRTY_STORAGE_KEY) === '1' ||
+            safeSessionGet(STORE_DIRTY_STORAGE_KEY) === '1' ||
+            safeCookieGet(STORE_DIRTY_STORAGE_KEY) === '1'
+        );
+        let isSheetLatestGas = null;
         let isRetryingQueue = false;
         let confirmCallback = null;
 
@@ -1631,7 +1650,7 @@ function jsonResponse(obj) {
                         <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
                             <!-- 商品名 -->
                             <div class="sm:col-span-5">
-                                <label class="block text-[11px] font-bold text-slate-600 mb-1">商品名</label>
+                                <label class="block text-[11px] font-bold text-slate-600 mb-1">商品名 <span class="text-rose-500">*</span></label>
                                 <select onchange="handleRowProductSelect(${idx}, this.value)" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                                     ${optionsHtml}
                                 </select>
@@ -1640,19 +1659,19 @@ function jsonResponse(obj) {
 
                             <!-- 販売価格 -->
                             <div class="sm:col-span-3">
-                                <label class="block text-[11px] font-bold text-slate-600 mb-1">販売価格（円）</label>
+                                <label class="block text-[11px] font-bold text-slate-600 mb-1">販売価格（円） <span class="text-rose-500">*</span></label>
                                 <input type="number" min="0" inputmode="numeric" value="${escapeHtml(row.price)}" placeholder="0" oninput="updateProductRowField(${idx}, 'price', this.value)" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm text-right font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500">
                             </div>
 
                             <!-- 販売準備数 -->
                             <div class="sm:col-span-2">
-                                <label class="block text-[11px] font-bold text-slate-600 mb-1">販売準備数</label>
+                                <label class="block text-[11px] font-bold text-slate-600 mb-1">販売準備数 <span class="text-rose-500">*</span></label>
                                 <input type="number" min="0" inputmode="numeric" value="${escapeHtml(row.prepared)}" placeholder="0" oninput="updateProductRowField(${idx}, 'prepared', this.value)" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm text-right font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500">
                             </div>
 
                             <!-- 販売数 -->
                             <div class="sm:col-span-2">
-                                <label class="block text-[11px] font-bold text-slate-600 mb-1">販売数</label>
+                                <label class="block text-[11px] font-bold text-slate-600 mb-1">販売数 <span class="text-rose-500">*</span></label>
                                 <input type="number" min="0" inputmode="numeric" value="${escapeHtml(row.sold)}" placeholder="0" oninput="updateProductRowField(${idx}, 'sold', this.value)" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm text-right font-semibold text-emerald-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                             </div>
                         </div>
@@ -1837,23 +1856,44 @@ function jsonResponse(obj) {
         }
 
         // ==================== 販売商品リスト編集モーダル ====================
-        function persistProductMaster() {
-            productMaster = sanitizeProductMasterList(productMaster);
-            hasUserModifiedProducts = true;
-            const json = JSON.stringify(productMaster);
+        function setProductDirtyFlag(isDirty) {
+            hasUserModifiedProducts = !!isDirty;
+            const flagVal = isDirty ? '1' : '';
+            safeCookieSet(PRODUCT_DIRTY_STORAGE_KEY, flagVal);
+            safeStorageSet(PRODUCT_DIRTY_STORAGE_KEY, flagVal);
+            safeSessionSet(PRODUCT_DIRTY_STORAGE_KEY, flagVal);
+        }
+
+        function setStoreDirtyFlag(isDirty) {
+            hasUserModifiedStores = !!isDirty;
+            const flagVal = isDirty ? '1' : '';
+            safeCookieSet(STORE_DIRTY_STORAGE_KEY, flagVal);
+            safeStorageSet(STORE_DIRTY_STORAGE_KEY, flagVal);
+            safeSessionSet(STORE_DIRTY_STORAGE_KEY, flagVal);
+        }
+
+        function writeProductMasterToAllLocalStorages(list) {
+            const json = JSON.stringify(list);
+            safeCookieSet(PRODUCT_MASTER_STORAGE_KEY, json);
             safeWindowNameSet(PRODUCT_MASTER_STORAGE_KEY, json);
             safeStorageSet(PRODUCT_MASTER_STORAGE_KEY, json);
             safeSessionSet(PRODUCT_MASTER_STORAGE_KEY, json);
             saveToIndexedDB(PRODUCT_MASTER_STORAGE_KEY, json);
             saveToCacheStorage(PRODUCT_MASTER_STORAGE_KEY, json);
+        }
+
+        function persistProductMaster(forceSync = true) {
+            productMaster = sanitizeProductMasterList(productMaster);
+            setProductDirtyFlag(true);
+            writeProductMasterToAllLocalStorages(productMaster);
             updateProductMasterBadge();
             updateProductMasterStatusBadge(
                 gasWebAppUrl
-                    ? `シート同期中 (${productMaster.length}件)`
-                    : `保存済み (${productMaster.length}件)`
+                    ? `保存済み・同期中 (${productMaster.length}件)`
+                    : `端末保存済み (${productMaster.length}件)`
             );
             renderProductRows();
-            if (gasWebAppUrl) {
+            if (gasWebAppUrl && forceSync) {
                 syncProductMasterToSheet(true);
             }
         }
@@ -1867,10 +1907,13 @@ function jsonResponse(obj) {
             renderProductMasterList();
             updateProductMasterStatusBadge(
                 gasWebAppUrl
-                    ? `シート連携中 (${productMaster.length}件)`
-                    : `登録済み (${productMaster.length}件)`
+                    ? (isSheetLatestGas === false ? `端末保存済み・GAS要更新 (${productMaster.length}件)` : `シート連携中 (${productMaster.length}件)`)
+                    : `端末保存済み (${productMaster.length}件)`
             );
             document.getElementById('product-master-modal').classList.remove('hidden');
+            if (gasWebAppUrl && productMaster.length === 0 && !hasUserModifiedProducts) {
+                fetchProductMasterFromSheet(true);
+            }
         }
 
         function closeProductMasterModal() {
@@ -2087,6 +2130,7 @@ function jsonResponse(obj) {
         }
 
         function validateReportData(data) {
+            // 1. 店舗・担当者情報
             if (!data.date) {
                 showToast('実施日を選択してください', 'warning');
                 return false;
@@ -2103,6 +2147,24 @@ function jsonResponse(obj) {
                 showToast('担当者を入力してください', 'warning');
                 return false;
             }
+
+            // 2. 時間情報（全項目必須・前後関係チェック）
+            if (!data.entryTime) {
+                showToast('入店時間を入力してください', 'warning');
+                return false;
+            }
+            if (!data.startTime) {
+                showToast('販売開始時間を入力してください', 'warning');
+                return false;
+            }
+            if (!data.endTime) {
+                showToast('販売終了時間を入力してください', 'warning');
+                return false;
+            }
+            if (!data.exitTime) {
+                showToast('退店時間を入力してください', 'warning');
+                return false;
+            }
             const tEntry = parseMinutes(data.entryTime);
             const tExit = parseMinutes(data.exitTime);
             if (tEntry !== null && tExit !== null && tExit < tEntry) {
@@ -2115,6 +2177,52 @@ function jsonResponse(obj) {
                 showToast('販売終了時間は販売開始時間より後の時刻にしてください', 'warning');
                 return false;
             }
+
+            // 3. 販売商品・販売価格（最低1商品以上・各行の全項目必須）
+            if (!Array.isArray(productRows) || productRows.length === 0) {
+                showToast('販売商品を1件以上入力してください', 'warning');
+                return false;
+            }
+            for (let i = 0; i < productRows.length; i++) {
+                const r = productRows[i];
+                const name = r.isCustom ? String(r.customName || '').trim() : String(r.productName || '').trim();
+                const priceRaw = String(r.price ?? '').trim();
+                const prepRaw = String(r.prepared ?? '').trim();
+                const soldRaw = String(r.sold ?? '').trim();
+                const rowLabel = productRows.length > 1 ? `（${i + 1}行目）` : '';
+
+                if (!name) {
+                    showToast(`商品名${rowLabel}を選択または入力してください`, 'warning');
+                    return false;
+                }
+                if (priceRaw === '' || Number.isNaN(Number(priceRaw)) || Number(priceRaw) < 0) {
+                    showToast(`販売価格${rowLabel}を入力してください`, 'warning');
+                    return false;
+                }
+                if (prepRaw === '' || Number.isNaN(Number(prepRaw)) || Number(prepRaw) < 0) {
+                    showToast(`販売準備数${rowLabel}を入力してください`, 'warning');
+                    return false;
+                }
+                if (soldRaw === '' || Number.isNaN(Number(soldRaw)) || Number(soldRaw) < 0) {
+                    showToast(`販売数${rowLabel}を入力してください`, 'warning');
+                    return false;
+                }
+            }
+
+            // 4. 現場写真（全3枚必須）
+            if (!data.photos || !data.photos[0]) {
+                showToast('① 店舗外観写真を添付してください', 'warning');
+                return false;
+            }
+            if (!data.photos[1]) {
+                showToast('② ポスター・告知物の写真を添付してください', 'warning');
+                return false;
+            }
+            if (!data.photos[2]) {
+                showToast('③ 販売会の写真を添付してください', 'warning');
+                return false;
+            }
+
             return true;
         }
 
@@ -2858,6 +2966,58 @@ function jsonResponse(obj) {
         }
 
         // ==================== マスタ双方向同期（シート連携） ====================
+        function fetchGasJsonWithFallback(url, action, timeoutMs = 9000) {
+            const sep = url.includes('?') ? '&' : '?';
+            const fullUrl = `${url}${sep}action=${encodeURIComponent(action)}&t=${Date.now()}`;
+
+            const tryFetch = () => new Promise((resolve, reject) => {
+                const controller = new AbortController();
+                const timer = setTimeout(() => controller.abort(), timeoutMs);
+                fetch(fullUrl, {
+                    method: 'GET',
+                    redirect: 'follow',
+                    signal: controller.signal
+                })
+                    .then(res => res.text())
+                    .then(txt => {
+                        clearTimeout(timer);
+                        resolve(JSON.parse(txt));
+                    })
+                    .catch(err => {
+                        clearTimeout(timer);
+                        reject(err);
+                    });
+            });
+
+            const tryJsonp = () => new Promise((resolve, reject) => {
+                const cbName = '__srGasCb_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+                const script = document.createElement('script');
+                const timer = setTimeout(() => {
+                    cleanup();
+                    reject(new Error('JSONP timeout'));
+                }, timeoutMs);
+
+                function cleanup() {
+                    clearTimeout(timer);
+                    try { delete window[cbName]; } catch (e) { window[cbName] = undefined; }
+                    if (script.parentNode) script.parentNode.removeChild(script);
+                }
+
+                window[cbName] = (payload) => {
+                    cleanup();
+                    resolve(payload);
+                };
+                script.onerror = () => {
+                    cleanup();
+                    reject(new Error('JSONP load error'));
+                };
+                script.src = `${fullUrl}&callback=${cbName}`;
+                document.head.appendChild(script);
+            });
+
+            return tryFetch().catch(() => tryJsonp());
+        }
+
         async function syncProductMasterToSheet(silent = false) {
             if (!gasWebAppUrl) {
                 if (!silent) showToast('先に「シート連携」からURLを設定してください', 'warning');
@@ -2867,11 +3027,23 @@ function jsonResponse(obj) {
                 const resJson = await postWithRetry(gasWebAppUrl, {
                     action: 'syncProducts',
                     items: productMaster
-                }, 2);
-                updateProductMasterStatusBadge(`シート同期済 (${productMaster.length}件)`);
-                if (!silent) showToast(`スプレッドシートへ ${resJson.count} 件保存しました`, 'success');
+                }, 3);
+                if (resJson && resJson.version === GAS_VERSION_TAG) {
+                    isSheetLatestGas = true;
+                    setProductDirtyFlag(false);
+                    updateProductMasterStatusBadge(`シート同期済 (${productMaster.length}件)`);
+                    if (!silent) showToast(`スプレッドシートへ ${resJson.count} 件保存しました`, 'success');
+                } else {
+                    isSheetLatestGas = false;
+                    updateProductMasterStatusBadge(`端末保存済・GAS要更新 (${productMaster.length}件)`);
+                    const hint = document.getElementById('product-master-sync-hint');
+                    if (hint) {
+                        hint.innerHTML = '<span class="text-amber-700 font-bold">※ スプレッドシート側のGASが旧バージョンのため、シートの「商品マスタ」へ保存できていません。「シート連携」＞「GASコードをコピー」でスプレッドシート側を更新・再デプロイすると他のスマホでも自動同期されます。</span>';
+                    }
+                    if (!silent) showToast('スプレッドシート側のGASコードを更新・新デプロイしてください', 'warning');
+                }
             } catch (e) {
-                updateProductMasterStatusBadge(`ブラウザ保存済 (${productMaster.length}件)`);
+                updateProductMasterStatusBadge(`端末保存済 (${productMaster.length}件)`);
                 if (!silent) showToast('シートへの保存に失敗しました', 'error');
             }
         }
@@ -2881,22 +3053,26 @@ function jsonResponse(obj) {
                 if (!silent) showToast('先に「シート連携」からURLを設定してください', 'warning');
                 return;
             }
-            if (silent && hasUserModifiedProducts) return;
+            // 未同期のローカル変更がある場合は上書きせず、先にシートへ送信する
+            if (silent && hasUserModifiedProducts) {
+                await syncProductMasterToSheet(true);
+                return;
+            }
             try {
-                const sep = gasWebAppUrl.includes('?') ? '&' : '?';
-                const res = await fetch(`${gasWebAppUrl}${sep}action=getProducts&t=${Date.now()}`);
-                const data = await res.json();
+                const data = await fetchGasJsonWithFallback(gasWebAppUrl, 'getProducts', 10000);
                 if (silent && hasUserModifiedProducts) return;
-                if (data && data.status === 'ok' && Array.isArray(data.items)) {
+
+                if (data && data.version) {
+                    isSheetLatestGas = (data.version === GAS_VERSION_TAG);
+                } else {
+                    isSheetLatestGas = false;
+                }
+
+                if (data && data.status === 'ok' && Array.isArray(data.items) && data.version === GAS_VERSION_TAG) {
                     const loaded = sanitizeProductMasterList(data.items);
                     if (loaded.length > 0) {
                         productMaster = loaded;
-                        const json = JSON.stringify(loaded);
-                        safeWindowNameSet(PRODUCT_MASTER_STORAGE_KEY, json);
-                        safeStorageSet(PRODUCT_MASTER_STORAGE_KEY, json);
-                        safeSessionSet(PRODUCT_MASTER_STORAGE_KEY, json);
-                        saveToIndexedDB(PRODUCT_MASTER_STORAGE_KEY, json);
-                        saveToCacheStorage(PRODUCT_MASTER_STORAGE_KEY, json);
+                        writeProductMasterToAllLocalStorages(loaded);
                         updateProductMasterBadge();
                         updateProductMasterStatusBadge(`シート同期済 (${loaded.length}件)`);
                         renderProductMasterList();
@@ -2904,10 +3080,16 @@ function jsonResponse(obj) {
                         if (!silent) showToast(`シートから ${loaded.length} 件の商品リストを読み込みました`, 'success');
                     } else {
                         if (productMaster.length > 0) {
-                            syncProductMasterToSheet(true);
+                            await syncProductMasterToSheet(true);
                         }
                         if (!silent) showToast('シートの「商品マスタ」は空でした', 'info');
                     }
+                } else {
+                    const hint = document.getElementById('product-master-sync-hint');
+                    if (hint) {
+                        hint.innerHTML = '<span class="text-amber-700 font-bold">※ スプレッドシート側のGASが旧バージョンのため「商品マスタ」読込に未対応です。「シート連携」＞「GASコードをコピー」でスプレッドシート側のApps Scriptを更新・再デプロイしてください。</span>';
+                    }
+                    if (!silent) showToast('スプレッドシート側のGASが旧バージョンのため商品マスタを読み込めませんでした', 'warning');
                 }
             } catch (e) {
                 if (!silent) showToast('シートからの読込に失敗しました', 'error');
@@ -2923,7 +3105,8 @@ function jsonResponse(obj) {
                 await postWithRetry(gasWebAppUrl, {
                     action: 'syncStores',
                     stores: storeMaster
-                }, 2);
+                }, 3);
+                hasUserModifiedStores = false;
                 if (!silent) showToast('企業名・店舗名マスタをシートへ保存しました', 'success');
             } catch (e) {
                 if (!silent) showToast('シートへの保存に失敗しました', 'error');
@@ -2937,15 +3120,14 @@ function jsonResponse(obj) {
             }
             if (silent && hasUserModifiedStores) return;
             try {
-                const sep = gasWebAppUrl.includes('?') ? '&' : '?';
-                const res = await fetch(`${gasWebAppUrl}${sep}action=getStores&t=${Date.now()}`);
-                const data = await res.json();
+                const data = await fetchGasJsonWithFallback(gasWebAppUrl, 'getStores', 10000);
                 if (silent && hasUserModifiedStores) return;
                 if (data && data.status === 'ok' && data.stores && typeof data.stores === 'object') {
                     const sanitized = sanitizeStoreMasterObject(data.stores);
                     if (Object.keys(sanitized).length > 0) {
                         storeMaster = sanitized;
                         const json = JSON.stringify(sanitized);
+                        safeCookieSet(STORE_MASTER_STORAGE_KEY, json);
                         safeWindowNameSet(STORE_MASTER_STORAGE_KEY, json);
                         safeStorageSet(STORE_MASTER_STORAGE_KEY, json);
                         safeSessionSet(STORE_MASTER_STORAGE_KEY, json);
@@ -2974,20 +3156,44 @@ function jsonResponse(obj) {
                     }
                 }
 
-                if (productMaster.length === 0 && !hasUserModifiedProducts) {
-                    const rawProd = (await loadFromIndexedDB(PRODUCT_MASTER_STORAGE_KEY)) || (await loadFromCacheStorage(PRODUCT_MASTER_STORAGE_KEY));
+                if (productMaster.length === 0) {
+                    const cookieProd = safeCookieGet(PRODUCT_MASTER_STORAGE_KEY);
+                    const rawProd = cookieProd || (await loadFromIndexedDB(PRODUCT_MASTER_STORAGE_KEY)) || (await loadFromCacheStorage(PRODUCT_MASTER_STORAGE_KEY));
                     if (rawProd) {
                         const parsed = sanitizeProductMasterList(JSON.parse(rawProd));
-                        if (parsed.length > 0 && productMaster.length === 0 && !hasUserModifiedProducts) {
+                        if (parsed.length > 0 && productMaster.length === 0) {
                             productMaster = parsed;
+                            writeProductMasterToAllLocalStorages(parsed);
                             updateProductMasterBadge();
                             renderProductRows();
                         }
                     }
                 }
 
+                // 履歴データに含まれる商品名からも自動補完（端末ストレージがリセットされたスマホ環境向けの最終防壁）
+                if (productMaster.length === 0 && Array.isArray(savedReports) && savedReports.length > 0) {
+                    const recovered = [];
+                    savedReports.forEach(rep => {
+                        if (Array.isArray(rep.products)) {
+                            rep.products.forEach(p => {
+                                if (p && p.name && p.name !== '名称未設定商品') {
+                                    recovered.push({ name: p.name });
+                                }
+                            });
+                        }
+                    });
+                    const sanitizedRecovered = sanitizeProductMasterList(recovered);
+                    if (sanitizedRecovered.length > 0) {
+                        productMaster = sanitizedRecovered;
+                        writeProductMasterToAllLocalStorages(sanitizedRecovered);
+                        updateProductMasterBadge();
+                        renderProductRows();
+                    }
+                }
+
                 if (!hasUserModifiedStores) {
-                    const rawStore = (await loadFromIndexedDB(STORE_MASTER_STORAGE_KEY)) || (await loadFromCacheStorage(STORE_MASTER_STORAGE_KEY));
+                    const cookieStore = safeCookieGet(STORE_MASTER_STORAGE_KEY);
+                    const rawStore = cookieStore || (await loadFromIndexedDB(STORE_MASTER_STORAGE_KEY)) || (await loadFromCacheStorage(STORE_MASTER_STORAGE_KEY));
                     if (rawStore) {
                         const parsed = sanitizeStoreMasterObject(JSON.parse(rawStore));
                         if (Object.keys(parsed).length > 0 && !hasUserModifiedStores) {
@@ -3033,6 +3239,21 @@ function jsonResponse(obj) {
 
             window.addEventListener('online', () => {
                 processUnsyncedReportsQueue(false);
+                if (gasWebAppUrl) {
+                    fetchProductMasterFromSheet(true);
+                    fetchStoreMasterFromSheet(true);
+                }
+            });
+
+            // スマホのホーム画面・タブ復帰時に自動で商品リスト・店舗マスタを再同期
+            window.addEventListener('pageshow', () => {
+                hydrateAsyncStorages();
+            });
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible' && gasWebAppUrl) {
+                    fetchProductMasterFromSheet(true);
+                    fetchStoreMasterFromSheet(true);
+                }
             });
 
             document.addEventListener('keydown', (e) => {
