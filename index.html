@@ -80,6 +80,17 @@
     <!-- ==================== メインコンテンツ ==================== -->
     <main class="flex-1 max-w-4xl w-full mx-auto px-4 py-5 space-y-5">
 
+        <!-- 履歴編集モード表示バナー -->
+        <div id="editing-banner" class="hidden bg-indigo-50 border border-indigo-200 rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5">
+                <span class="px-2 py-0.5 rounded-lg bg-indigo-600 text-white text-[11px] font-bold">編集中</span>
+                <p id="editing-banner-text" class="text-xs font-bold text-indigo-900">過去の報告書を編集中</p>
+            </div>
+            <button type="button" onclick="cancelEditMode()" class="px-3 py-1.5 rounded-xl border border-indigo-300 bg-white hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition">
+                新規作成に戻る
+            </button>
+        </div>
+
         <!-- 未送信キュー通知バナー（オフライン・通信エラー時のみ表示） -->
         <div id="unsynced-banner" class="hidden bg-amber-50 border border-amber-200 rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center gap-2.5">
@@ -98,13 +109,13 @@
             </button>
         </div>
 
-        <!-- GAS旧バージョン警告バナー（スプレッドシート側の再デプロイ未完了時のみ自動表示） -->
+        <!-- GAS旧バージョン警告バナー（スプレッドシート側の新デプロイ未完了時のみ自動表示） -->
         <div id="gas-upgrade-banner" class="hidden bg-rose-50 border border-rose-200 rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center gap-2.5">
                 <div class="w-8 h-8 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center shrink-0 font-bold text-xs">!</div>
                 <div>
-                    <p class="text-xs font-bold text-rose-900">スプレッドシート側のGAS更新（新バージョンデプロイ）が未完了です</p>
-                    <p class="text-[11px] text-rose-700">「シート連携」＞「GASコードをコピー」でスプレッドシートのApps Scriptを更新・新バージョンでデプロイすると商品リストが消えなくなります。</p>
+                    <p class="text-xs font-bold text-rose-900">スプレッドシート側のGAS更新（新しいデプロイURL）が未反映です</p>
+                    <p class="text-[11px] text-rose-700">古いGASのまま送信すると列見出しが元に戻るため保護しています。「シート連携」から新しいデプロイURLを設定してください。</p>
                 </div>
             </div>
             <button type="button" onclick="openSheetConfigModal()" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition">
@@ -433,18 +444,18 @@
             </div>
 
             <div class="p-5 overflow-y-auto flex-1 space-y-4">
-                <!-- 新規追加フォーム（標準価格なし・商品名のみ） -->
-                <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-2">
-                    <label for="new-product-name" class="block text-xs font-bold text-slate-700">新しい商品名を追加</label>
+                <!-- 商品新規追加フォーム -->
+                <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-2.5">
+                    <label for="new-product-name" class="block text-xs font-bold text-slate-700">新しい商品を追加</label>
                     <div class="flex gap-2">
-                        <input type="text" id="new-product-name" placeholder="例：特製たまごサンド" onkeydown="if(event.key==='Enter'){event.preventDefault();addProductMasterItem();}" class="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <button type="button" onclick="addProductMasterItem()" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shrink-0 transition">
+                        <input type="text" id="new-product-name" placeholder="商品名を入力（例：お菓子詰め合わせ）" onkeydown="if(event.key==='Enter'){event.preventDefault();addProductMasterItem();}" class="flex-1 px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <button type="button" onclick="addProductMasterItem()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shrink-0 transition">
                             追加
                         </button>
                     </div>
                 </div>
 
-                <!-- 登録済み商品一覧 -->
+                <!-- 登録済み商品リスト -->
                 <div class="space-y-2">
                     <div class="flex flex-wrap items-center justify-between gap-2">
                         <div class="flex items-center gap-2">
@@ -616,13 +627,31 @@
             </div>
 
             <div class="p-5 overflow-y-auto flex-1 space-y-4">
+                <!-- 旧GAS検出時の警告ガイド -->
+                <div id="old-gas-modal-alert" class="hidden bg-rose-50 border border-rose-300 rounded-2xl p-4 space-y-2">
+                    <p class="text-xs font-bold text-rose-900">⚠️ 現在の連携URLは「古いGASプログラム」のまま動いています</p>
+                    <p class="text-[11px] text-rose-800 leading-relaxed">
+                        古いGASのまま送信すると、スプレッドシートの1行目が昔の列（「販売人数」「メモ欄」など）に上書きされて元に戻ってしまいます。以下の手順で<strong>新しいデプロイURL</strong>へ更新してください：
+                    </p>
+                    <ol class="text-[11px] text-rose-900 list-decimal pl-4 space-y-1 font-medium">
+                        <li>下の<strong>「GASコードをコピー」</strong>を押し、スプレッドシートの「拡張機能」＞「Apps Script」に貼り付けて<strong>保存</strong>（列が戻っている場合は <code>fixSheetColumnsNow</code> を1回「実行」）</li>
+                        <li>右上の<strong>「デプロイ」＞「新しいデプロイ」</strong>（種類：ウェブアプリ ／ アクセスできるユーザー：<strong>全員</strong>）でデプロイし、<strong>新しく発行されたURLをコピー</strong></li>
+                        <li>下のURL欄の「クリア」を押して<strong>新しいURLを貼り付け ＞「URLを保存して連携」</strong>をクリック</li>
+                    </ol>
+                </div>
+
                 <!-- URL設定 -->
                 <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
                     <div class="flex flex-wrap items-center justify-between gap-2">
                         <label for="gas-webapp-url" class="text-xs font-bold text-slate-800">Google Apps Script ウェブアプリURL</label>
                         <span id="gas-version-badge" class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-slate-200 text-slate-700">未接続</span>
                     </div>
-                    <input type="url" id="gas-webapp-url" oninput="handleGasUrlInput(this.value)" onpaste="setTimeout(()=>handleGasUrlInput(this.value),10)" placeholder="https://script.google.com/macros/s/...../exec" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <div class="flex gap-2">
+                        <input type="url" id="gas-webapp-url" oninput="handleGasUrlInput(this.value)" onpaste="setTimeout(()=>handleGasUrlInput(this.value),10)" placeholder="https://script.google.com/macros/s/...../exec" class="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <button type="button" onclick="clearGasUrlInput()" class="px-3 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-600 text-xs font-semibold shrink-0 transition">
+                            クリア
+                        </button>
+                    </div>
                     <div class="flex flex-wrap items-center justify-between gap-2">
                         <button type="button" id="disconnect-sheet-btn" onclick="confirmDisconnectSheet()" class="hidden px-3 py-2 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold transition">
                             連携を解除
@@ -631,7 +660,7 @@
                             <button type="button" onclick="checkGasDeploymentStatus(false)" class="px-3 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold transition">
                                 接続テスト
                             </button>
-                            <button type="button" onclick="saveGasWebAppUrl()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition">
+                            <button type="button" onclick="saveGasWebAppUrl(false)" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition">
                                 URLを保存して連携
                             </button>
                         </div>
@@ -725,9 +754,12 @@
     <!-- ==================== メインスクリプト ==================== -->
     <script>
         // ==================== 定数・ストレージキー ====================
-        const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbyoY8VPzfeRoJ1srMOKZG1WU_ntSahfRIBKtnc9zxopzX7LIjOlvlTJgTIEczook5-tsA/exec';
-        const GAS_VERSION_TAG = 'v9_full_sync';
-        const GAS_URL_STORAGE_KEY = 'sales_report_gas_url_v3';
+        const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbxNWAHSSLWSBAJSDrU5n5txXUIbl5GmBbjTh1oUYNaDnf4DiGgWd0Q-lQrSN5mokrYTIQ/exec';
+        const OBSOLETE_GAS_URLS = [
+            'https://script.google.com/macros/s/AKfycbyoY8VPzfeRoJ1srMOKZG1WU_ntSahfRIBKtnc9zxopzX7LIjOlvlTJgTIEczook5-tsA/exec'
+        ];
+        const GAS_VERSION_TAG = 'v10_col18_final';
+        const GAS_URL_STORAGE_KEY = 'sales_report_gas_url_v4';
         const PRODUCT_MASTER_STORAGE_KEY = 'sales_report_product_master_v3';
         const PRODUCT_DIRTY_STORAGE_KEY = 'sales_report_product_dirty_v3';
         const STORE_MASTER_STORAGE_KEY = 'sales_report_store_master_v3';
@@ -803,6 +835,13 @@ const HEADER_ALIASES = {
 const PRODUCT_MASTER_SHEET = '商品マスタ';
 const STORE_MASTER_SHEET = '企業名・店舗名マスタ';
 const PHOTO_FOLDER_NAME = '販売会報告書_現場写真';
+
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('【販売会報告書】列整列')
+    .addItem('全18列を指定の並び順に整列・修復', 'fixSheetColumnsNow')
+    .addToUi();
+}
 
 function doGet(e) {
   try {
@@ -1201,18 +1240,23 @@ function jsonResponse(obj, e) {
             return typeof url === 'string' && /^https:\/\/script\.google\.com\/(a\/macros\/[^/]+\/)?macros\/s\/[^/]+\/exec/.test(url.trim());
         }
 
+        function isObsoleteGasUrl(url) {
+            const clean = String(url || '').trim();
+            return OBSOLETE_GAS_URLS.some(oldUrl => clean === oldUrl || clean.startsWith(oldUrl));
+        }
+
         function getGasUrlFromLocation() {
             try {
                 const params = new URLSearchParams(window.location.search);
                 const qUrl = params.get('gas');
-                if (qUrl && isValidGasWebAppUrl(qUrl)) return qUrl.trim();
+                if (qUrl && isValidGasWebAppUrl(qUrl) && !isObsoleteGasUrl(qUrl)) return qUrl.trim();
             } catch (e) {}
             try {
                 const hash = window.location.hash || '';
                 const match = hash.match(/gas=([^&]+)/);
                 if (match && match[1]) {
                     const decoded = decodeURIComponent(match[1]).trim();
-                    if (isValidGasWebAppUrl(decoded)) return decoded;
+                    if (isValidGasWebAppUrl(decoded) && !isObsoleteGasUrl(decoded)) return decoded;
                 }
             } catch (e) {}
             return '';
@@ -1358,7 +1402,6 @@ function jsonResponse(obj, e) {
             return `${y}-${m}-${day}`;
         }
 
-        // 店舗名から企業名を抜いた表示へ整形
         function stripCompanyNameFromStore(storeName, companyName = '', knownCompanies = []) {
             let s = String(storeName || '').trim();
             if (!s) return '';
@@ -1414,16 +1457,28 @@ function jsonResponse(obj, e) {
         }
 
         // ==================== アプリケーション状態 ====================
-        let gasWebAppUrl = (
-            getGasUrlFromLocation() ||
-            safeWindowNameGet(GAS_URL_STORAGE_KEY) ||
-            safeStorageGet(GAS_URL_STORAGE_KEY) ||
-            safeSessionGet(GAS_URL_STORAGE_KEY) ||
-            safeCookieGet(GAS_URL_STORAGE_KEY) ||
-            DEFAULT_GAS_URL ||
-            ''
-        ).trim();
+        let gasWebAppUrl = (() => {
+            const candidates = [
+                safeStorageGet(GAS_URL_STORAGE_KEY),
+                safeCookieGet(GAS_URL_STORAGE_KEY),
+                safeWindowNameGet(GAS_URL_STORAGE_KEY),
+                safeSessionGet(GAS_URL_STORAGE_KEY),
+                getGasUrlFromLocation(),
+                DEFAULT_GAS_URL
+            ];
+            for (const c of candidates) {
+                const trimmed = String(c || '').trim();
+                if (trimmed && isValidGasWebAppUrl(trimmed) && !isObsoleteGasUrl(trimmed)) {
+                    return trimmed;
+                }
+            }
+            return DEFAULT_GAS_URL;
+        })();
         if (gasWebAppUrl) {
+            safeStorageSet(GAS_URL_STORAGE_KEY, gasWebAppUrl);
+            safeCookieSet(GAS_URL_STORAGE_KEY, gasWebAppUrl);
+            safeWindowNameSet(GAS_URL_STORAGE_KEY, gasWebAppUrl);
+            safeSessionSet(GAS_URL_STORAGE_KEY, gasWebAppUrl);
             syncGasUrlToLocation(gasWebAppUrl);
         }
 
@@ -1626,8 +1681,9 @@ function jsonResponse(obj, e) {
         // ==================== 企業・店舗マスタモーダル ====================
         function persistStoreMaster() {
             storeMaster = sanitizeStoreMasterObject(storeMaster);
-            hasUserModifiedStores = true;
+            setStoreDirtyFlag(true);
             const json = JSON.stringify(storeMaster);
+            safeCookieSet(STORE_MASTER_STORAGE_KEY, json);
             safeWindowNameSet(STORE_MASTER_STORAGE_KEY, json);
             safeStorageSet(STORE_MASTER_STORAGE_KEY, json);
             safeSessionSet(STORE_MASTER_STORAGE_KEY, json);
@@ -1677,7 +1733,7 @@ function jsonResponse(obj, e) {
                         return `
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-800 text-xs font-medium">
                                 <span>${escapeHtml(cleanSt)}</span>
-                                <button type="button" onclick="deleteStoreItem('${escapeHtml(comp)}', '${escapeHtml(cleanSt)}')" class="text-slate-400 hover:text-rose-600 font-bold" title="店舗を削除">×</button>
+                                <button type="button" data-comp="${escapeHtml(comp)}" data-store="${escapeHtml(cleanSt)}" onclick="deleteStoreItem(this.dataset.comp, this.dataset.store)" class="text-slate-400 hover:text-rose-600 font-bold" title="店舗を削除">×</button>
                             </span>
                         `;
                     }).join('')
@@ -1687,7 +1743,7 @@ function jsonResponse(obj, e) {
                     <div class="p-3.5 rounded-2xl border border-slate-200 bg-white space-y-2">
                         <div class="flex items-center justify-between">
                             <span class="text-xs font-bold text-indigo-700">${escapeHtml(comp)}</span>
-                            <button type="button" onclick="deleteCompanyItem('${escapeHtml(comp)}')" class="text-[11px] text-rose-500 hover:text-rose-700 font-semibold">企業ごと削除</button>
+                            <button type="button" data-comp="${escapeHtml(comp)}" onclick="deleteCompanyItem(this.dataset.comp)" class="text-[11px] text-rose-500 hover:text-rose-700 font-semibold">企業ごと削除</button>
                         </div>
                         <div class="flex flex-wrap gap-1.5">${storeBadges}</div>
                     </div>
@@ -1986,7 +2042,6 @@ function jsonResponse(obj, e) {
                 return;
             }
 
-            // 最初の行が空欄のままなら置き換え、それ以外は末尾に追加
             const isFirstRowEmpty = productRows.length === 1 &&
                 !productRows[0].productName &&
                 !productRows[0].customName &&
@@ -2105,6 +2160,7 @@ function jsonResponse(obj, e) {
 
         function addProductMasterItem(silent = false) {
             const input = document.getElementById('new-product-name');
+            if (!input) return;
             const name = input.value.trim();
             if (!name) {
                 if (!silent) showToast('商品名を入力してください', 'warning');
@@ -2299,7 +2355,6 @@ function jsonResponse(obj, e) {
         }
 
         function validateReportData(data) {
-            // 1. 店舗・担当者情報
             if (!data.date) {
                 showToast('実施日を選択してください', 'warning');
                 return false;
@@ -2317,7 +2372,6 @@ function jsonResponse(obj, e) {
                 return false;
             }
 
-            // 2. 時間情報（全項目必須・前後関係チェック）
             if (!data.entryTime) {
                 showToast('入店時間を入力してください', 'warning');
                 return false;
@@ -2347,7 +2401,6 @@ function jsonResponse(obj, e) {
                 return false;
             }
 
-            // 3. 販売商品・販売価格（最低1商品以上・各行の全項目必須）
             if (!Array.isArray(productRows) || productRows.length === 0) {
                 showToast('販売商品を1件以上入力してください', 'warning');
                 return false;
@@ -2378,7 +2431,6 @@ function jsonResponse(obj, e) {
                 }
             }
 
-            // 4. 現場写真（全3枚必須）
             if (!data.photos || !data.photos[0]) {
                 showToast('① 店舗外観写真を添付してください', 'warning');
                 return false;
@@ -2523,7 +2575,6 @@ function jsonResponse(obj, e) {
 
         // ==================== 履歴保存・Googleスプレッドシート送信 ====================
         function persistSavedReports() {
-            // 容量制限対策：最新3件以降は写真を軽量化して保持
             const lightList = savedReports.map((rep, idx) => {
                 if (idx < 3) return rep;
                 return { ...rep, photos: ['', '', ''] };
@@ -2544,7 +2595,7 @@ function jsonResponse(obj, e) {
             if (countEl) countEl.textContent = String(savedReports.length);
             if (modalCountEl) modalCountEl.textContent = String(savedReports.length);
 
-            const unsynced = savedReports.filter(r => r.sheetSynced === false);
+            const unsynced = savedReports.filter(r => r.sheetSynced === false && r.statusLabel !== '下書き保存');
             const banner = document.getElementById('unsynced-banner');
             const unsyncedCount = document.getElementById('unsynced-count');
             if (banner && unsyncedCount) {
@@ -2558,7 +2609,6 @@ function jsonResponse(obj, e) {
         }
 
         function upsertReportInHistory(reportObj) {
-            // 新しい企業・店舗が直接入力された場合はマスタにも自動学習
             if (reportObj.companyName && reportObj.storeName) {
                 if (!storeMaster[reportObj.companyName]) storeMaster[reportObj.companyName] = [];
                 if (!storeMaster[reportObj.companyName].includes(reportObj.storeName)) {
@@ -2567,9 +2617,26 @@ function jsonResponse(obj, e) {
                 }
             }
 
-            const idx = savedReports.findIndex(r => r.id === reportObj.id);
-            if (idx >= 0) {
-                savedReports[idx] = reportObj;
+            if (Array.isArray(reportObj.products)) {
+                let prodAdded = false;
+                reportObj.products.forEach(p => {
+                    const pName = String(p && p.name ? p.name : '').trim();
+                    if (pName && pName !== '名称未設定商品' && !productMaster.some(pm => pm.name === pName)) {
+                        productMaster.push({
+                            id: 'prod_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+                            name: pName
+                        });
+                        prodAdded = true;
+                    }
+                });
+                if (prodAdded) {
+                    persistProductMaster(true);
+                }
+            }
+
+            const existingIdx = savedReports.findIndex(r => r.id === reportObj.id);
+            if (existingIdx >= 0) {
+                savedReports[existingIdx] = reportObj;
             } else {
                 savedReports.unshift(reportObj);
             }
@@ -2587,28 +2654,58 @@ function jsonResponse(obj, e) {
 
         async function postWithRetry(url, payload, maxRetries = 3) {
             let lastErr = null;
-            for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            for (let attempt = 0; attempt < maxRetries; attempt++) {
                 try {
+                    const controller = new AbortController();
+                    const timer = setTimeout(() => controller.abort(), 25000);
                     const res = await fetch(url, {
                         method: 'POST',
                         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                        body: JSON.stringify(payload)
+                        body: JSON.stringify(payload),
+                        redirect: 'follow',
+                        signal: controller.signal
                     });
+                    clearTimeout(timer);
                     const text = await res.text();
-                    let json = null;
-                    try { json = JSON.parse(text); } catch (e) {}
-                    if (json && json.status === 'success') {
-                        return json;
+                    const trimmed = (text || '').trim();
+                    if (trimmed.startsWith('<!DOCTYPE') || trimmed.startsWith('<html')) {
+                        throw new Error('GAS_HTML_RESPONSE');
                     }
-                    throw new Error((json && json.message) ? json.message : '応答エラー');
+                    const json = JSON.parse(trimmed);
+                    if (json && json.status === 'error') {
+                        throw new Error(json.message || 'GAS_ERROR');
+                    }
+                    return json;
                 } catch (err) {
                     lastErr = err;
-                    if (attempt < maxRetries) {
-                        await new Promise(r => setTimeout(r, 700 * attempt));
+                    if (attempt < maxRetries - 1) {
+                        await new Promise(r => setTimeout(r, 800 * (attempt + 1)));
                     }
                 }
             }
-            throw lastErr || new Error('送信失敗');
+            throw lastErr || new Error('POST_FAILED');
+        }
+
+        async function verifyGasDeploymentIsLatest(url) {
+            if (!url) return { ok: false, reason: 'NO_URL' };
+            try {
+                const pingData = await fetchGasJsonWithFallback(url, 'ping', {}, 8000);
+                if (pingData && pingData.status === 'ok' && pingData.version === GAS_VERSION_TAG) {
+                    isSheetLatestGas = true;
+                    document.getElementById('gas-upgrade-banner')?.classList.add('hidden');
+                    document.getElementById('old-gas-modal-alert')?.classList.add('hidden');
+                    return { ok: true, data: pingData };
+                }
+                isSheetLatestGas = false;
+                return { ok: false, reason: 'OLD_VERSION', detectedVersion: (pingData && pingData.version) ? pingData.version : '旧版' };
+            } catch (err) {
+                const msg = (err && err.message) ? err.message : '';
+                if (msg === 'AUTH_OR_HTML_RESPONSE' || msg.startsWith('INVALID_JSON') || msg === 'JSONP_SCRIPT_ERROR') {
+                    isSheetLatestGas = false;
+                    return { ok: false, reason: 'OLD_OR_AUTH_ERROR', error: msg };
+                }
+                return { ok: false, reason: 'NETWORK_ERROR', error: msg };
+            }
         }
 
         async function submitReportToSheetAndSave() {
@@ -2636,6 +2733,20 @@ function jsonResponse(obj, e) {
             }
 
             try {
+                // 旧バージョンのGASが動いているURLへPOSTするとシートの列見出しが旧形式へ上書きされるため事前検証でブロック
+                const gasCheck = await verifyGasDeploymentIsLatest(gasWebAppUrl);
+                if (!gasCheck.ok && (gasCheck.reason === 'OLD_VERSION' || gasCheck.reason === 'OLD_OR_AUTH_ERROR')) {
+                    data.sheetSynced = false;
+                    data.statusLabel = 'GAS更新待ち（保護保存）';
+                    upsertReportInHistory(data);
+                    document.getElementById('gas-upgrade-banner')?.classList.remove('hidden');
+                    document.getElementById('old-gas-modal-alert')?.classList.remove('hidden');
+                    closePreviewModal();
+                    openSheetConfigModal();
+                    showToast('連携URLが旧GASのままのため、シートの列が元に戻るのを防止しました。新しいデプロイURLへ更新してください。', 'error');
+                    return;
+                }
+
                 const resJson = await postWithRetry(gasWebAppUrl, {
                     action: 'appendReport',
                     ...data
@@ -2644,6 +2755,7 @@ function jsonResponse(obj, e) {
                 data.sheetSynced = true;
                 data.syncedAt = resJson.submittedAt || new Date().toLocaleString('ja-JP');
                 data.targetSheetInfo = resJson.sheetName ? `${resJson.sheetName} (${resJson.row}行目)` : '';
+                delete data.statusLabel;
                 upsertReportInHistory(data);
 
                 closePreviewModal();
@@ -2672,6 +2784,15 @@ function jsonResponse(obj, e) {
             isRetryingQueue = true;
             let successCount = 0;
             try {
+                const gasCheck = await verifyGasDeploymentIsLatest(gasWebAppUrl);
+                if (!gasCheck.ok) {
+                    if (!silent && (gasCheck.reason === 'OLD_VERSION' || gasCheck.reason === 'OLD_OR_AUTH_ERROR')) {
+                        document.getElementById('old-gas-modal-alert')?.classList.remove('hidden');
+                        openSheetConfigModal();
+                        showToast('連携URLが旧GASのため再送を保留しました。新しいデプロイURLを設定してください', 'error');
+                    }
+                    return;
+                }
                 for (const item of queue) {
                     try {
                         const resJson = await postWithRetry(gasWebAppUrl, {
@@ -2716,9 +2837,10 @@ function jsonResponse(obj, e) {
             }
 
             container.innerHTML = savedReports.map((rep, idx) => {
+                const badgeText = rep.sheetSynced ? 'シート送信済' : (rep.statusLabel || '未送信');
                 const syncBadge = rep.sheetSynced
-                    ? '<span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">シート送信済</span>'
-                    : '<span class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold">未送信</span>';
+                    ? `<span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">${escapeHtml(badgeText)}</span>`
+                    : `<span class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold">${escapeHtml(badgeText)}</span>`;
 
                 return `
                     <div class="p-4 rounded-2xl border border-slate-200 bg-white space-y-2.5">
@@ -2844,9 +2966,9 @@ function jsonResponse(obj, e) {
                     rep.endTime || '',
                     rep.exitTime || '',
                     items.map(p => p.name || '').join('\n'),
-                    items.map(p => p.price || 0).join('\n'),
-                    items.map(p => p.prepared || 0).join('\n'),
-                    items.map(p => p.sold || 0).join('\n'),
+                    items.map(p => p.price ?? 0).join('\n'),
+                    items.map(p => p.prepared ?? 0).join('\n'),
+                    items.map(p => p.sold ?? 0).join('\n'),
                     rep.totalSales || 0,
                     '',
                     '',
@@ -2903,7 +3025,20 @@ function jsonResponse(obj, e) {
             document.getElementById('field-notes').value = '';
         }
 
-        // ==================== Googleスプレッドシート連携通信 ====================
+        // ==================== Googleスプレッドシート連携設定 ====================
+        function persistGasUrl(url) {
+            const clean = (url || '').trim();
+            gasWebAppUrl = clean;
+            safeStorageSet(GAS_URL_STORAGE_KEY, clean);
+            safeCookieSet(GAS_URL_STORAGE_KEY, clean);
+            safeWindowNameSet(GAS_URL_STORAGE_KEY, clean);
+            safeSessionSet(GAS_URL_STORAGE_KEY, clean);
+            saveToIndexedDB(GAS_URL_STORAGE_KEY, clean);
+            saveToCacheStorage(GAS_URL_STORAGE_KEY, clean);
+            syncGasUrlToLocation(clean);
+            updateSheetStatusUI();
+        }
+
         function updateSheetStatusUI() {
             const dot = document.getElementById('sheet-status-dot');
             const text = document.getElementById('sheet-status-text');
@@ -2927,99 +3062,34 @@ function jsonResponse(obj, e) {
             updateHistoryBadges();
         }
 
-        function persistGasUrl(url) {
-            gasWebAppUrl = (url || '').trim();
-            syncGasUrlToLocation(gasWebAppUrl);
-            safeCookieSet(GAS_URL_STORAGE_KEY, gasWebAppUrl);
-            safeWindowNameSet(GAS_URL_STORAGE_KEY, gasWebAppUrl);
-            safeStorageSet(GAS_URL_STORAGE_KEY, gasWebAppUrl);
-            safeSessionSet(GAS_URL_STORAGE_KEY, gasWebAppUrl);
-            saveToIndexedDB(GAS_URL_STORAGE_KEY, gasWebAppUrl);
-            saveToCacheStorage(GAS_URL_STORAGE_KEY, gasWebAppUrl);
-            updateSheetStatusUI();
-        }
-
-        let gasAutoSaveTimer = null;
-        function handleGasUrlInput(rawVal) {
-            const val = (rawVal || '').trim();
-            if (!isValidGasWebAppUrl(val) || val === gasWebAppUrl) return;
-            clearTimeout(gasAutoSaveTimer);
-            gasAutoSaveTimer = setTimeout(() => {
-                saveGasWebAppUrl(true);
-            }, 350);
-        }
-
-        function copyPermanentBookmarkUrl() {
-            const url = (document.getElementById('gas-webapp-url').value.trim() || gasWebAppUrl).trim();
-            if (!url) {
-                showToast('先にGoogle Apps ScriptのURLを入力してください', 'warning');
-                return;
-            }
-            persistGasUrl(url);
-            let shareUrl = '';
-            try {
-                const u = new URL(window.location.href);
-                u.searchParams.set('gas', url);
-                shareUrl = u.toString();
-            } catch (e) {
-                shareUrl = `${window.location.origin}${window.location.pathname}?gas=${encodeURIComponent(url)}`;
-            }
-            const ta = document.createElement('textarea');
-            ta.value = shareUrl;
-            ta.style.position = 'fixed';
-            ta.style.opacity = '0';
-            document.body.appendChild(ta);
-            ta.select();
-            try {
-                document.execCommand('copy');
-                showToast('設定済み専用URLをコピーしました。ブックマークや共有にご利用ください', 'success');
-            } catch (e) {
-                showToast('URLのコピーに失敗しました', 'error');
-            }
-            ta.remove();
-        }
-
-        function downloadEmbeddedHtmlFile() {
-            const url = (document.getElementById('gas-webapp-url').value.trim() || gasWebAppUrl).trim();
-            if (!url) {
-                showToast('先にGoogle Apps ScriptのURLを入力してください', 'warning');
-                return;
-            }
-            persistGasUrl(url);
-            const clone = document.documentElement.cloneNode(true);
-            clone.querySelectorAll('[id$="-modal"]').forEach(m => m.classList.add('hidden'));
-            const rawHtml = '<!DOCTYPE html>\n' + clone.outerHTML;
-            const embeddedHtml = rawHtml.replace(
-                /const DEFAULT_GAS_URL\s*=\s*['"][^'"]*['"];/,
-                `const DEFAULT_GAS_URL = ${JSON.stringify(url)};`
-            );
-            const blob = new Blob([embeddedHtml], { type: 'text/html;charset=utf-8' });
-            const dlUrl = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = dlUrl;
-            a.download = 'sales_report_app.html';
-            a.click();
-            URL.revokeObjectURL(dlUrl);
-            showToast('連携URL固定済みのHTMLファイルを保存しました', 'success');
-        }
-
         function openSheetConfigModal() {
-            document.getElementById('gas-webapp-url').value = gasWebAppUrl || '';
-            document.getElementById('gas-script-code').value = GAS_SCRIPT_TEMPLATE;
+            const urlInput = document.getElementById('gas-webapp-url');
+            if (urlInput) urlInput.value = gasWebAppUrl || '';
+            const codeArea = document.getElementById('gas-script-code');
+            if (codeArea) codeArea.value = GAS_SCRIPT_TEMPLATE;
             document.getElementById('sheet-config-modal').classList.remove('hidden');
             if (gasWebAppUrl) {
                 checkGasDeploymentStatus(true);
-            } else {
-                const badge = document.getElementById('gas-version-badge');
-                if (badge) {
-                    badge.textContent = '未接続';
-                    badge.className = 'text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-slate-200 text-slate-700';
-                }
             }
         }
 
         function closeSheetConfigModal() {
             document.getElementById('sheet-config-modal').classList.add('hidden');
+        }
+
+        function handleGasUrlInput(val) {
+            const trimmed = (val || '').trim();
+            if (isValidGasWebAppUrl(trimmed) && trimmed !== gasWebAppUrl) {
+                saveGasWebAppUrl(true);
+            }
+        }
+
+        function clearGasUrlInput() {
+            const input = document.getElementById('gas-webapp-url');
+            if (input) {
+                input.value = '';
+                input.focus();
+            }
         }
 
         async function saveGasWebAppUrl(isAuto = false) {
@@ -3065,36 +3135,119 @@ function jsonResponse(obj, e) {
                 badge.className = 'text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800';
             }
             try {
-                const sep = url.includes('?') ? '&' : '?';
-                const res = await fetch(`${url}${sep}action=ping&t=${Date.now()}`);
-                const data = await res.json();
+                const data = await fetchGasJsonWithFallback(url, 'ping', {}, 10000);
                 if (data && data.status === 'ok') {
                     const isLatest = data.version === GAS_VERSION_TAG;
+                    isSheetLatestGas = isLatest;
+                    if (isLatest) {
+                        document.getElementById('gas-upgrade-banner')?.classList.add('hidden');
+                        document.getElementById('old-gas-modal-alert')?.classList.add('hidden');
+                    } else {
+                        document.getElementById('gas-upgrade-banner')?.classList.remove('hidden');
+                        document.getElementById('old-gas-modal-alert')?.classList.remove('hidden');
+                    }
                     if (badge) {
                         badge.textContent = isLatest
                             ? `✅ 最新版接続済 (${data.sheetName || 'シート'})`
-                            : `⚠️ 旧バージョン稼働中（新デプロイ推奨）`;
+                            : `⚠️ 旧GAS稼働中（要・新URL発行）`;
                         badge.className = isLatest
                             ? 'text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800'
-                            : 'text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800';
+                            : 'text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800';
                     }
                     if (!silent) {
-                        showToast(isLatest ? 'スプレッドシートに正常接続しました' : '接続できましたがGASの「新しいデプロイ」を実行すると全機能が有効になります', isLatest ? 'success' : 'warning');
+                        showToast(
+                            isLatest
+                                ? '最新バージョンのGASと正常に接続しました！列が戻ることはありません'
+                                : '現在のURLは旧バージョンのGASで動いています。「新しいデプロイ」で新URLを発行して貼り替えてください',
+                            isLatest ? 'success' : 'error'
+                        );
                     }
                 } else {
                     throw new Error('Invalid response');
                 }
             } catch (e) {
+                isSheetLatestGas = false;
+                document.getElementById('old-gas-modal-alert')?.classList.remove('hidden');
                 if (badge) {
-                    badge.textContent = '❌ 接続エラー（権限設定を確認）';
+                    badge.textContent = '❌ 旧GASまたは権限エラー';
                     badge.className = 'text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800';
                 }
-                if (!silent) showToast('接続に失敗しました。「アクセスできるユーザー：全員」になっているか確認してください', 'error');
+                if (!silent) showToast('接続エラーまたは旧GASです。「新しいデプロイ（全員）」で発行したURLを設定してください', 'error');
             }
+        }
+
+        function copyPermanentBookmarkUrl() {
+            const targetGas = document.getElementById('gas-webapp-url').value.trim() || gasWebAppUrl;
+            if (!targetGas) {
+                showToast('先にGoogle Apps ScriptのURLを設定してください', 'warning');
+                return;
+            }
+            let shareUrl = window.location.href;
+            try {
+                const u = new URL(window.location.href);
+                u.searchParams.set('gas', targetGas);
+                shareUrl = u.toString();
+            } catch (e) {}
+
+            const ta = document.createElement('textarea');
+            ta.value = shareUrl;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            try {
+                document.execCommand('copy');
+                showToast('連携URL組み込み済みの専用アドレスをコピーしました', 'success');
+            } catch (e) {
+                showToast('コピーに失敗しました', 'error');
+            }
+            ta.remove();
+        }
+
+        function downloadEmbeddedHtmlFile() {
+            const targetGas = document.getElementById('gas-webapp-url').value.trim() || gasWebAppUrl;
+            const clone = document.documentElement.cloneNode(true);
+
+            // モーダル類や一時スクリプトを閉じたクリーンな初期状態にする
+            [
+                'multi-product-modal',
+                'product-master-modal',
+                'store-master-modal',
+                'preview-modal',
+                'history-modal',
+                'sheet-config-modal',
+                'image-zoom-modal',
+                'custom-confirm-modal'
+            ].forEach(id => {
+                const m = clone.querySelector('#' + id);
+                if (m) m.classList.add('hidden');
+            });
+            const toastCont = clone.querySelector('#toast-container');
+            if (toastCont) toastCont.innerHTML = '';
+            clone.querySelectorAll('script[src*="__srGasCb_"]').forEach(s => s.remove());
+
+            let htmlSource = '<!DOCTYPE html>\n' + clone.outerHTML;
+            if (targetGas) {
+                htmlSource = htmlSource.replace(
+                    /const DEFAULT_GAS_URL = '[^']*';/,
+                    () => `const DEFAULT_GAS_URL = '${targetGas.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}';`
+                );
+            }
+
+            const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'sales_report_app.html';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('URL固定済みのHTMLファイルを保存しました', 'success');
         }
 
         function copyGasScriptCode() {
             const ta = document.getElementById('gas-script-code');
+            if (!ta) return;
+            if (!ta.value) ta.value = GAS_SCRIPT_TEMPLATE;
             ta.select();
             try {
                 document.execCommand('copy');
@@ -3142,11 +3295,17 @@ function jsonResponse(obj, e) {
                 return;
             }
             try {
+                const gasCheck = await verifyGasDeploymentIsLatest(gasWebAppUrl);
+                if (!gasCheck.ok && (gasCheck.reason === 'OLD_VERSION' || gasCheck.reason === 'OLD_OR_AUTH_ERROR')) {
+                    document.getElementById('old-gas-modal-alert')?.classList.remove('hidden');
+                    showToast('現在のURLは旧GASのため整列できません。「新しいデプロイ」で発行したURLを設定してください', 'error');
+                    return;
+                }
                 showToast('スプレッドシートの列順を整列しています...', 'info');
                 await postWithRetry(gasWebAppUrl, { action: 'fixColumns' }, 2);
                 showToast('スプレッドシートの全18列を指定の並び順に整列しました', 'success');
             } catch (e) {
-                showToast('列順の整列に失敗しました（最新GASの保存・新バージョンデプロイを行ってください）', 'error');
+                showToast('列順の整列に失敗しました（最新GASの保存・新デプロイを行ってください）', 'error');
             }
         }
 
@@ -3212,7 +3371,6 @@ function jsonResponse(obj, e) {
                     });
             });
 
-            // スマホやサンドボックスiFrameではCORSヘッダ制限の影響を受けないJSONPを優先し、失敗時にfetchへフォールバック
             return tryJsonp().catch(() => tryFetch());
         }
 
@@ -3230,7 +3388,6 @@ function jsonResponse(obj, e) {
                         items: productMaster
                     }, 2);
                 } catch (postErr) {
-                    // POSTがスマホ・GitHub等でブロックされる場合はJSONP GET経由で保存
                     const namesOnly = productMaster.map(p => p.name);
                     resJson = await fetchGasJsonWithFallback(gasWebAppUrl, 'syncProductsGet', {
                         items: JSON.stringify(namesOnly)
@@ -3241,33 +3398,22 @@ function jsonResponse(obj, e) {
                     if (resJson.version === GAS_VERSION_TAG) {
                         isSheetLatestGas = true;
                         document.getElementById('gas-upgrade-banner')?.classList.add('hidden');
+                        document.getElementById('old-gas-modal-alert')?.classList.add('hidden');
                         setProductDirtyFlag(false);
                         updateProductMasterStatusBadge(`✅ シート保存完了 (${productMaster.length}件)`);
                         if (!silent) showToast(`スプレッドシート「商品マスタ」へ ${resJson.count ?? productMaster.length} 件保存しました`, 'success');
                     } else {
                         isSheetLatestGas = false;
                         document.getElementById('gas-upgrade-banner')?.classList.remove('hidden');
-                        updateProductMasterStatusBadge(`⚠️ シート未反映（GAS新デプロイが必要）`);
-                        const hint = document.getElementById('product-master-sync-hint');
-                        if (hint) {
-                            hint.innerHTML = '<span class="text-rose-700 font-bold">【重要】スプレッドシート側のGASが旧バージョンのため、シートに保存されていません。「シート連携」＞「GASコードをコピー」で貼り付け後、必ず「デプロイを管理」＞鉛筆アイコン＞「新バージョン」でデプロイしてください。</span>';
-                        }
+                        updateProductMasterStatusBadge(`⚠️ シート未反映（新URLデプロイが必要）`);
                         if (!silent) showToast('スプレッドシート側のGASが旧バージョンのためシートに保存できませんでした', 'error');
                     }
                 } else {
                     throw new Error('SYNC_FAILED');
                 }
             } catch (e) {
-                // 最後のフォールバックとしてno-corsで送信を試行
-                try {
-                    fetch(gasWebAppUrl, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        body: JSON.stringify({ action: 'syncProducts', items: productMaster })
-                    }).catch(() => {});
-                } catch (err) {}
-                updateProductMasterStatusBadge(`⚠️ 通信エラー・端末には保存済 (${productMaster.length}件)`);
-                if (!silent) showToast('シートへの保存に失敗しました（通信状況をご確認ください）', 'error');
+                updateProductMasterStatusBadge(`⚠️ 端末に保存済 (${productMaster.length}件)`);
+                if (!silent) showToast('シートへの保存に失敗しました（通信状況またはGASデプロイURLをご確認ください）', 'error');
             }
         }
 
@@ -3295,6 +3441,7 @@ function jsonResponse(obj, e) {
 
                 if (data && data.status === 'ok' && Array.isArray(data.items) && data.version === GAS_VERSION_TAG) {
                     document.getElementById('gas-upgrade-banner')?.classList.add('hidden');
+                    document.getElementById('old-gas-modal-alert')?.classList.add('hidden');
                     const loaded = sanitizeProductMasterList(data.items);
                     if (loaded.length > 0) {
                         productMaster = loaded;
@@ -3311,40 +3458,16 @@ function jsonResponse(obj, e) {
                         } else {
                             updateProductMasterStatusBadge(`✅ シート接続済 (0件)`);
                         }
-                        if (!silent) showToast('シートの「商品マスタ」は0件でした', 'info');
+                        if (!silent) showToast('シートの「商品マスタ」を初期同期しました', 'info');
                     }
                 } else {
                     document.getElementById('gas-upgrade-banner')?.classList.remove('hidden');
-                    const hint = document.getElementById('product-master-sync-hint');
-                    if (hint) {
-                        hint.innerHTML = '<span class="text-rose-700 font-bold">【原因判明】スプレッドシート側のApps Scriptがまだ旧バージョンです。「シート連携」＞「GASコードをコピー」で貼り付け後、右上の「デプロイ」＞「デプロイを管理」＞鉛筆アイコン＞「新バージョン」でデプロイしてください。</span>';
-                    }
                     updateProductMasterStatusBadge(`⚠️ GAS新デプロイが必要 (${productMaster.length}件)`);
                     if (!silent) showToast('スプレッドシート側のGASが旧バージョンのため読み込めませんでした', 'error');
                 }
             } catch (e) {
-                const reason = e && e.message ? e.message : '';
-                const hint = document.getElementById('product-master-sync-hint');
-                if (reason === 'AUTH_OR_HTML_RESPONSE') {
-                    updateProductMasterStatusBadge(`⚠️ GASアクセス権限エラー`);
-                    if (hint) {
-                        hint.innerHTML = '<span class="text-rose-700 font-bold">【アクセス権限エラー】Apps Script のデプロイ設定で「アクセスできるユーザー」を必ず「全員（Anyone）」に変更して新バージョンでデプロイしてください。</span>';
-                    }
-                    if (!silent) showToast('GASのアクセス権限が「全員」になっていないため読み込めません', 'error');
-                } else if (reason.startsWith('INVALID_JSON')) {
-                    document.getElementById('gas-upgrade-banner')?.classList.remove('hidden');
-                    updateProductMasterStatusBadge(`⚠️ GAS新デプロイが必要`);
-                    if (hint) {
-                        hint.innerHTML = '<span class="text-rose-700 font-bold">【旧GAS応答】Apps Script で最新コードを貼り付けたあと、「デプロイを管理」＞鉛筆アイコン＞「新バージョン」でデプロイしてください。</span>';
-                    }
-                    if (!silent) showToast('旧バージョンのGASが応答しています。新バージョンでデプロイしてください', 'error');
-                } else {
-                    updateProductMasterStatusBadge(`⚠️ 通信エラー（外部ブラウザ推奨）`);
-                    if (hint) {
-                        hint.innerHTML = '<span class="text-rose-700 font-bold">スマホ版Geminiアプリの画面内では外部通信が制限されます。「シート連携」＞「URL固定済みHTMLを保存」で保存したファイルをSafariやChromeで開くと正常に同期できます。</span>';
-                    }
-                    if (!silent) showToast('スマホGeminiアプリ内では通信が制限されます。Safari/Chromeで開いてください', 'error');
-                }
+                updateProductMasterStatusBadge(`端末保存済 (${productMaster.length}件)`);
+                if (!silent) showToast('シートからの読込に失敗しました（「シート連携」の接続テストをご確認ください）', 'error');
             }
         }
 
@@ -3354,12 +3477,16 @@ function jsonResponse(obj, e) {
                 return;
             }
             try {
-                await postWithRetry(gasWebAppUrl, {
+                const resJson = await postWithRetry(gasWebAppUrl, {
                     action: 'syncStores',
                     stores: storeMaster
-                }, 3);
-                hasUserModifiedStores = false;
-                if (!silent) showToast('企業名・店舗名マスタをシートへ保存しました', 'success');
+                }, 2);
+                if (resJson && resJson.version === GAS_VERSION_TAG) {
+                    setStoreDirtyFlag(false);
+                    if (!silent) showToast('企業名・店舗名マスタをシートへ保存しました', 'success');
+                } else if (!silent) {
+                    showToast('スプレッドシート側のGAS更新（新デプロイURL）が必要です', 'warning');
+                }
             } catch (e) {
                 if (!silent) showToast('シートへの保存に失敗しました', 'error');
             }
@@ -3374,7 +3501,7 @@ function jsonResponse(obj, e) {
             try {
                 const data = await fetchGasJsonWithFallback(gasWebAppUrl, 'getStores', {}, 10000);
                 if (silent && hasUserModifiedStores) return;
-                if (data && data.status === 'ok' && data.stores && typeof data.stores === 'object') {
+                if (data && data.status === 'ok' && data.stores && typeof data.stores === 'object' && data.version === GAS_VERSION_TAG) {
                     const sanitized = sanitizeStoreMasterObject(data.stores);
                     if (Object.keys(sanitized).length > 0) {
                         storeMaster = sanitized;
@@ -3401,10 +3528,12 @@ function jsonResponse(obj, e) {
         // ==================== 初期化処理 ====================
         async function hydrateAsyncStorages() {
             try {
-                if (!gasWebAppUrl) {
+                if (!gasWebAppUrl || isObsoleteGasUrl(gasWebAppUrl)) {
                     const url = (await loadFromIndexedDB(GAS_URL_STORAGE_KEY)) || (await loadFromCacheStorage(GAS_URL_STORAGE_KEY));
-                    if (url && typeof url === 'string' && url.trim()) {
+                    if (url && typeof url === 'string' && url.trim() && !isObsoleteGasUrl(url)) {
                         persistGasUrl(url.trim());
+                    } else if (DEFAULT_GAS_URL) {
+                        persistGasUrl(DEFAULT_GAS_URL);
                     }
                 }
 
@@ -3413,34 +3542,16 @@ function jsonResponse(obj, e) {
                     const rawProd = cookieProd || (await loadFromIndexedDB(PRODUCT_MASTER_STORAGE_KEY)) || (await loadFromCacheStorage(PRODUCT_MASTER_STORAGE_KEY));
                     if (rawProd) {
                         const parsed = sanitizeProductMasterList(JSON.parse(rawProd));
-                        if (parsed.length > 0 && productMaster.length === 0) {
+                        if (parsed.length > 0) {
                             productMaster = parsed;
-                            writeProductMasterToAllLocalStorages(parsed);
-                            updateProductMasterBadge();
-                            renderProductRows();
                         }
                     }
-                }
-
-                // 履歴データに含まれる商品名からも自動補完（端末ストレージがリセットされたスマホ環境向けの最終防壁）
-                if (productMaster.length === 0 && Array.isArray(savedReports) && savedReports.length > 0) {
-                    const recovered = [];
-                    savedReports.forEach(rep => {
-                        if (Array.isArray(rep.products)) {
-                            rep.products.forEach(p => {
-                                if (p && p.name && p.name !== '名称未設定商品') {
-                                    recovered.push({ name: p.name });
-                                }
-                            });
-                        }
-                    });
-                    const sanitizedRecovered = sanitizeProductMasterList(recovered);
-                    if (sanitizedRecovered.length > 0) {
-                        productMaster = sanitizedRecovered;
-                        writeProductMasterToAllLocalStorages(sanitizedRecovered);
-                        updateProductMasterBadge();
-                        renderProductRows();
+                    if (productMaster.length === 0) {
+                        productMaster = sanitizeProductMasterList(DEFAULT_PRODUCT_MASTER);
                     }
+                    writeProductMasterToAllLocalStorages(productMaster);
+                    updateProductMasterBadge();
+                    renderProductRows();
                 }
 
                 if (!hasUserModifiedStores) {
@@ -3468,6 +3579,7 @@ function jsonResponse(obj, e) {
                 }
 
                 if (gasWebAppUrl) {
+                    await verifyGasDeploymentIsLatest(gasWebAppUrl);
                     await fetchStoreMasterFromSheet(true);
                     await fetchProductMasterFromSheet(true);
                     await processUnsyncedReportsQueue(true);
@@ -3479,6 +3591,10 @@ function jsonResponse(obj, e) {
             const dateInput = document.getElementById('report-date');
             if (dateInput && !dateInput.value) {
                 dateInput.value = getTodayYMD();
+            }
+            const codeArea = document.getElementById('gas-script-code');
+            if (codeArea) {
+                codeArea.value = GAS_SCRIPT_TEMPLATE;
             }
 
             updateSheetStatusUI();
@@ -3497,7 +3613,6 @@ function jsonResponse(obj, e) {
                 }
             });
 
-            // スマホのホーム画面・タブ復帰時にストレージとスプレッドシートから確実に再同期
             window.addEventListener('pageshow', () => {
                 hydrateAsyncStorages();
                 if (gasWebAppUrl) {
@@ -3505,6 +3620,7 @@ function jsonResponse(obj, e) {
                     fetchStoreMasterFromSheet(true);
                 }
             });
+
             document.addEventListener('visibilitychange', () => {
                 if (document.visibilityState === 'visible') {
                     hydrateAsyncStorages();
@@ -3514,6 +3630,7 @@ function jsonResponse(obj, e) {
                     }
                 }
             });
+
             window.addEventListener('storage', (e) => {
                 if (e.key === PRODUCT_MASTER_STORAGE_KEY && e.newValue) {
                     try {
